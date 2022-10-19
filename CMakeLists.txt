@@ -4,4 +4,4 @@ project(ffmpeg-emscripten-demo LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra)
 
-add_executable(example src/example.cc)
+add_executable(example src/example.cpp)
