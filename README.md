@@ -1,6 +1,8 @@
 # ffmpeg-experiment
 
 ```sh
+git submodule update --init
+
 # native
 cmake . -B build/cc/Debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/cc/Debug
