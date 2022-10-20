@@ -24,6 +24,11 @@ add_executable(example src/example.cpp)
 target_link_libraries(example ${AVFORMAT_LIBRARIES})
 target_include_directories(example PRIVATE ${AVFORMAT_INCLUDE_DIRS})
 
+# use in-tree ffmpeg build (verified static link by `ldd ./build/cc/Debug/example-local`)
+add_executable(example-local src/example.cpp)
+target_link_libraries(example-local -L${CMAKE_CURRENT_SOURCE_DIR}/build/ffmpeg-prefix/lib -lavformat -lavcodec -lavutil)
+target_include_directories(example-local PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/build/ffmpeg-prefix/include)
+
 # target_compile_options(testapp PUBLIC ${AVFORMAT_CFLAGS_OTHER})
 # target_link_libraries(example AVF)
 # target_link_libraries(example libavformat)

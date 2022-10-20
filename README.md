@@ -4,7 +4,7 @@
 git submodule update --init
 
 # compile ffmpeg
-bash misc/ffmpeg-configure.sh "$PWD/build/ffmpeg" --prefix="$PWD/build/ffmpeg-prefix" --enable-shared --disable-asm --disable-doc --disable-everything --enable-demuxer=webm_dash_manifest --enable-muxer=opus
+bash misc/ffmpeg-configure.sh "$PWD/build/ffmpeg" --prefix="$PWD/build/ffmpeg-prefix" --disable-autodetect --disable-everything --disable-asm --disable-doc --enable-demuxer=webm_dash_manifest --enable-muxer=opus
 make -C build/ffmpeg
 make -C build/ffmpeg install
 
