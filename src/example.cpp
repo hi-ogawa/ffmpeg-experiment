@@ -1,3 +1,5 @@
+#include "utils.hpp"
+
 extern "C" {
   #include <libavformat/avformat.h>
 }
@@ -7,6 +9,7 @@ struct Example {
 
   Example() {
     fmt_ctx_ = avformat_alloc_context();
+    ASSERT(fmt_ctx_);
   }
 
   ~Example() {
