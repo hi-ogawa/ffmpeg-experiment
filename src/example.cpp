@@ -1,7 +1,5 @@
 #include "utils.hpp"
 #include <cstring>
-#include <fstream>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -24,7 +22,7 @@ struct Example {
   ~Example() { avformat_close_input(&fmt_ctx_); }
 };
 
-constexpr size_t AVIO_BUFFER_SIZE = 4096;
+constexpr size_t AVIO_BUFFER_SIZE = 1 << 12;
 
 struct Buffer {
   AVIOContext *avio_ctx_;
@@ -64,25 +62,17 @@ struct Buffer {
 };
 
 // TODO: customize callback
-// void custom_log_callback(void*, int, const char*, va_list) {
-// }
+// void custom_log_callback(void*, int, const char*, va_list) {}
 // av_log_set_callback(custom_log_callback);
 
-std::vector<uint8_t> read_file(const std::string &filename) {
-  std::ifstream istr(filename, std::ios::binary);
-  ASSERT(istr.is_open());
-  std::vector<uint8_t> data((std::istreambuf_iterator<char>(istr)),
-                            std::istreambuf_iterator<char>());
-  return data;
-}
+int main(int argc, const char **argv) {
+  utils::Cli cli{argc, argv};
+  auto infile = cli.argument<std::string>("-i").value_or("test.webm");
 
-int main() {
-  Example example;
-
-  // yt-dlp -f 251 -o test.webm https://www.youtube.com/watch?v=uWEcvd7wk3U
-  auto data = read_file("test.webm");
+  auto data = utils::read_file(infile);
   Buffer buffer(data);
 
+  Example example;
   example.fmt_ctx_->pb = buffer.avio_ctx_;
   ASSERT(avformat_open_input(&example.fmt_ctx_, NULL, NULL, NULL) == 0);
   ASSERT(avformat_find_stream_info(example.fmt_ctx_, NULL) == 0);
