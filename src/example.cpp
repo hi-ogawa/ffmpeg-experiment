@@ -22,6 +22,10 @@ struct Example {
   ~Example() { avformat_close_input(&fmt_ctx_); }
 };
 
+//
+// in memory IO
+//
+
 struct Buffer {
   AVIOContext *avio_ctx_;
   void *avio_buffer_;         // ffmpeg internal buffer
@@ -61,32 +65,67 @@ struct Buffer {
   }
 };
 
-std::vector<std::tuple<int, std::string>> g_log;
+//
+// custom log callback
+//
 
-void custom_log_callback(void *, int level, const char *fmt, va_list vl) {
-  // cf. https://stackoverflow.com/a/49812356
+struct Logger;
+Logger *g_logger = nullptr;
 
-  // "dry run" to compute the length
-  va_list vl_copy;
-  va_copy(vl_copy, vl);
-  auto len = std::vsnprintf(NULL, 0, fmt, vl_copy);
-  va_end(vl_copy);
+struct Logger {
+  std::vector<std::tuple<int, std::string>> logs_;
+  bool debug_ = false;
 
-  // print to buffer
-  ASSERT(len >= 0);
-  std::vector<char> buffer(len + 1);
-  std::vsnprintf(buffer.data(), buffer.size(), fmt, vl);
-  va_end(vl);
+  Logger() {
+    ASSERT(!g_logger);
+    g_logger = this;
+    av_log_set_callback(Logger::log_callback_main);
+  }
 
-  // push log
-  std::string log{buffer.data(), buffer.size()};
-  g_log.push_back(std::make_tuple(level, log));
+  ~Logger() {
+    g_logger = nullptr;
+    av_log_set_callback(av_log_default_callback);
+  }
 
-  std::cout << log << std::flush;
-}
+  static void log_callback_main(void *, int level, const char *fmt,
+                                va_list vl) {
+    g_logger->log_callback(level, fmt, vl);
+  }
+
+  void log_callback(int level, const char *fmt, va_list vl) {
+    auto log = format_log(fmt, vl);
+    if (debug_) {
+      std::cout << "[" << level << "] " << log << std::flush;
+    }
+    logs_.push_back(std::make_tuple(level, log));
+  }
+
+  static std::string format_log(const char *fmt, va_list vl) {
+    // cf. https://stackoverflow.com/a/49812356
+
+    // "dry run" to compute the length
+    va_list vl_copy;
+    va_copy(vl_copy, vl);
+    auto len = std::vsnprintf(NULL, 0, fmt, vl_copy);
+    va_end(vl_copy);
+
+    // print to buffer
+    ASSERT(len >= 0);
+    std::vector<char> buffer(len + 1);
+    std::vsnprintf(buffer.data(), buffer.size(), fmt, vl);
+    va_end(vl);
+
+    return std::string{buffer.data(), buffer.size()};
+  }
+};
+
+//
+// main
+//
 
 int main(int argc, const char **argv) {
-  av_log_set_callback(custom_log_callback);
+  Logger logger;
+  logger.debug_ = true;
 
   utils::Cli cli{argc, argv};
   auto infile = cli.argument<std::string>("-i").value_or("test.webm");
@@ -99,8 +138,6 @@ int main(int argc, const char **argv) {
   ASSERT(avformat_open_input(&example.fmt_ctx_, NULL, NULL, NULL) == 0);
   ASSERT(avformat_find_stream_info(example.fmt_ctx_, NULL) == 0);
   av_dump_format(example.fmt_ctx_, 0, NULL, 0);
-
-  dbg(g_log);
 
   return 0;
 }
