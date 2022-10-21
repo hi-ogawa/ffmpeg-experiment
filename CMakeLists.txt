@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.0.0)
 project(ffmpeg-emscripten-demo LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-Wall -Wextra)
+add_compile_options(-Wall -Wextra -Wshadow -Wno-missing-braces)
+add_compile_options(-fsanitize=address -fsanitize=undefined)
+add_link_options(-fsanitize=address -fsanitize=undefined)
 
 # ffmpeg (using system installed library for now)
 # https://cmake.org/cmake/help/latest/module/FindPkgConfig.html
