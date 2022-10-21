@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 // based on third_party/FFmpeg/doc/examples/avio_reading.c
 
@@ -22,22 +23,43 @@ struct Example {
 
   ~Example() {
     avformat_close_input(&fmt_ctx_);
-    // avformat_free_context(fmt_ctx_);
   }
 };
 
+constexpr size_t AVIO_BUFFER_SIZE = 4096;
+
 struct Buffer {
   AVIOContext* avio_ctx_;
-  std::vector<uint8_t> data_;
+  void* avio_buffer_; // ffmpeg internal buffer
+  std::vector<uint8_t> data_; // actual data
+  std::vector<uint8_t>::iterator data_iter_;
 
   Buffer(const std::vector<uint8_t>& data): data_{data} {
-    // TODO: doesn't seem to be the valid usage (avio free data pointer internally?)
-    avio_ctx_ = avio_alloc_context(data_.data(), data_.size(), 0, NULL, NULL, NULL, NULL);
+    data_iter_ = data_.begin();
+    avio_buffer_ = av_malloc(AVIO_BUFFER_SIZE);
+    ASSERT(avio_buffer_);
+    avio_ctx_ = avio_alloc_context(reinterpret_cast<uint8_t*>(avio_buffer_), AVIO_BUFFER_SIZE, 0, this, Buffer::read_packet, NULL, NULL);
     ASSERT(avio_ctx_);
   }
 
   ~Buffer() {
+    av_freep(&avio_ctx_->buffer);
     avio_context_free(&avio_ctx_);
+  }
+
+  static int read_packet(void *opaque, uint8_t *buf, int buf_size) {
+    return reinterpret_cast<Buffer*>(opaque)->read_packet(buf, buf_size);
+  }
+
+  int read_packet(uint8_t *dest, int req_size) {
+    int remaining = data_.end() - data_iter_;
+    int read_size = std::min(req_size, remaining);
+    if (read_size == 0) {
+      return AVERROR_EOF;
+    }
+    std::memcpy(dest, &*data_iter_, read_size);
+    data_iter_ += read_size;
+    return read_size;
   }
 };
 
@@ -64,17 +86,6 @@ int main() {
   ASSERT(avformat_open_input(&example.fmt_ctx_, NULL, NULL, NULL) == 0);
   ASSERT(avformat_find_stream_info(example.fmt_ctx_, NULL) == 0);
   av_dump_format(example.fmt_ctx_, 0, NULL, 0);
-
-  // TODO: segfault on cleanup
-  // $ cmake --build build/cc/Debug -- example-local
-  // [2/2] Linking CXX executable example-local
-  // $ ./build/cc/Debug/example-local
-  // Input #0, matroska,webm, from '(null)':
-  //   Metadata:
-  //     encoder         : google/video-file
-  //   Duration: 00:04:12.40, start: -0.007000, bitrate: N/A
-  //   Stream #0:0(eng): Audio: opus, 48000 Hz, 2 channels (default)
-  // Erreur de segmentation (core dumped)
 
   return 0;
 }
