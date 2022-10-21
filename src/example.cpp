@@ -31,7 +31,8 @@ struct Buffer {
   std::vector<uint8_t> data_;
 
   Buffer(const std::vector<uint8_t>& data): data_{data} {
-    avio_ctx_ = avio_alloc_context(data_.data(), data_.size(), 0, this, NULL, NULL, NULL);
+    // TODO: doesn't seem to be the valid usage (avio free data pointer internally?)
+    avio_ctx_ = avio_alloc_context(data_.data(), data_.size(), 0, NULL, NULL, NULL, NULL);
     ASSERT(avio_ctx_);
   }
 
