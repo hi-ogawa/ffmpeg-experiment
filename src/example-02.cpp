@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 extern "C" {
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
 #include <libavutil/avutil.h>
@@ -78,6 +79,7 @@ struct BufferInput {
   }
 };
 
+// TODO not used
 struct BufferOutput {
   AVIOContext* avio_ctx_;
   std::vector<uint8_t> output_;
@@ -118,7 +120,7 @@ struct BufferOutput {
 
 struct FormatContext {
   AVFormatContext* ifmt_ctx_;
-  AVFormatContext* ofmt_ctx_;  // TODO
+  // AVFormatContext* ofmt_ctx_;  // TODO
   BufferInput& bytes_io_;
 
   FormatContext(BufferInput& bytes_io) : bytes_io_{bytes_io} {
@@ -143,36 +145,72 @@ struct FormatContext {
   }
 
   std::vector<uint8_t> decodeAudio() {
+    // find audio stream
     auto stream_index =
         av_find_best_stream(ifmt_ctx_, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
     ASSERT(stream_index >= 0);
     AVStream* stream = ifmt_ctx_->streams[stream_index];
-    // dbg(streamm)
 
-    // avcodec_find_decoder
-    // stream->codecpar->codec_id;
+    // find decoder and instantiate AVCodecContext
+    const AVCodec* dec = avcodec_find_decoder(stream->codecpar->codec_id);
+    ASSERT(dec);
+    AVCodecContext* dec_ctx = avcodec_alloc_context3(dec);
+    ASSERT(dec_ctx);
+    DEFER {
+      avcodec_free_context(&dec_ctx);
+    };
+    ASSERT(avcodec_parameters_to_context(dec_ctx, stream->codecpar) >= 0);
+    avcodec_open2(dec_ctx, dec, NULL);
 
+    // allocate AVFrame and AVPacket
     AVFrame* frame = av_frame_alloc();
     ASSERT(frame);
     DEFER {
       av_frame_free(&frame);
     };
-
     AVPacket* pkt = av_packet_alloc();
     ASSERT(pkt);
     DEFER {
       av_packet_free(&pkt);
     };
 
+    // read and decode packets
     std::vector<uint8_t> result;
     while (av_read_frame(ifmt_ctx_, pkt) >= 0) {
-      // if (pkt->stream_index == stream_index) {
-      // }
-      dbg(pkt->stream_index, pkt->pts, pkt->size);
+      if (pkt->stream_index == stream_index) {
+        decodePacket(dec_ctx, pkt, frame, result);
+      }
       av_packet_unref(pkt);
     }
-
+    decodePacket(dec_ctx, nullptr, frame, result);
     return result;
+  }
+
+  static void decodePacket(AVCodecContext* dec_ctx,
+                           const AVPacket* pkt,
+                           AVFrame* frame,
+                           std::vector<uint8_t>& dest) {
+    ASSERT(avcodec_send_packet(dec_ctx, pkt) >= 0);
+    while (true) {
+      auto ret = avcodec_receive_frame(dec_ctx, frame);
+      if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+        return;
+      }
+      ASSERT(ret >= 0);
+      outputFrame(frame, dest);
+      av_frame_unref(frame);
+    }
+  }
+
+  static void outputFrame(AVFrame* frame, std::vector<uint8_t>& dest) {
+    auto format = (enum AVSampleFormat)(frame->format);
+    auto fmt_name = av_get_sample_fmt_name(format);
+    ASSERT(fmt_name);
+    // e.g. (fltp, 2) = (floating point planer, 2 channels)
+    // dbg(fmt_name, frame->ch_layout.nb_channels);
+    size_t size = frame->nb_samples * av_get_bytes_per_sample(format);
+    uint8_t* src = frame->extended_data[0];
+    dest.insert(dest.end(), src, src + size);
   }
 };
 
@@ -191,11 +229,14 @@ int main(int argc, const char** argv) {
   }
 
   // avio
-  auto data = utils::read_file(in_file.value());
+  auto data = utils::readFile(in_file.value());
   BufferInput bytes_io{data};
 
   // avformat
   FormatContext format_context(bytes_io);
   format_context.openInput(true);
-  format_context.decodeAudio();
+  auto decoded = format_context.decodeAudio();
+
+  // write raw audio
+  utils::writeFile(out_file.value(), decoded);
 }

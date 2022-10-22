@@ -68,12 +68,18 @@ ostream& operator<<(ostream& ostr, const T& xs) {
 
 namespace utils {
 
-std::vector<uint8_t> read_file(const std::string& filename) {
+std::vector<uint8_t> readFile(const std::string& filename) {
   std::ifstream istr(filename, std::ios::binary);
   ASSERT(istr.is_open());
   std::vector<uint8_t> data((std::istreambuf_iterator<char>(istr)),
                             std::istreambuf_iterator<char>());
   return data;
+}
+
+void writeFile(const std::string& filename, const std::vector<uint8_t>& data) {
+  std::ofstream ostr(filename, std::ios::binary);
+  ASSERT(ostr.is_open());
+  ostr.write(reinterpret_cast<const char*>(data.data()), data.size());
 }
 
 }  // namespace utils

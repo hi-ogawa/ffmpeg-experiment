@@ -8,7 +8,7 @@ add_link_options(-fsanitize=address -fsanitize=undefined)
 
 # ffmpeg
 add_library(ffmpeg INTERFACE)
-target_link_libraries(ffmpeg INTERFACE -L${CMAKE_CURRENT_SOURCE_DIR}/build/ffmpeg-prefix/lib -lavformat -lavcodec -lavutil)
+target_link_libraries(ffmpeg INTERFACE -L${CMAKE_CURRENT_SOURCE_DIR}/build/ffmpeg-prefix/lib -lavformat -lavcodec -lavutil -lswresample)
 target_include_directories(ffmpeg INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/build/ffmpeg-prefix/include)
 
 # example

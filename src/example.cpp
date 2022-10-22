@@ -130,7 +130,7 @@ int main(int argc, const char** argv) {
   utils::Cli cli{argc, argv};
   auto infile = cli.argument<std::string>("-i").value_or("test.webm");
 
-  auto data = utils::read_file(infile);
+  auto data = utils::readFile(infile);
   Buffer buffer(data);
 
   Example example;
