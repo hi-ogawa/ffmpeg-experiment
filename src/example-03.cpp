@@ -1,7 +1,9 @@
-// demux/decode example based on
-// third_party/FFmpeg/doc/examples/demuxing_decoding.c
+// webm -> opus without transcoding (aka "-c copy")
+// third_party/FFmpeg/doc/examples/muxing.c
+// https://github.com/FFmpeg/FFmpeg/blob/81bc4ef14292f77b7dcea01b00e6f2ec1aea4b32/fftools/ffmpeg.c#L1782
 
 #include <cstring>
+#include <optional>
 #include "utils.hpp"
 
 extern "C" {
@@ -78,18 +80,58 @@ struct BufferInput {
   }
 };
 
+struct BufferOutput {
+  AVIOContext* avio_ctx_;
+  std::vector<uint8_t> output_;
+
+  BufferOutput() {
+    // ffmpeg internal buffer (needs to be allocated on our own initially)
+    constexpr size_t AVIO_BUFFER_SIZE = 1 << 12;  // 4K
+    auto avio_buffer = reinterpret_cast<uint8_t*>(av_malloc(AVIO_BUFFER_SIZE));
+    ASSERT(avio_buffer);
+
+    // instantiate AVIOContext
+    avio_ctx_ = avio_alloc_context(avio_buffer, AVIO_BUFFER_SIZE, 1, this, NULL,
+                                   BufferOutput::writePacket, NULL);
+    ASSERT(avio_ctx_);
+  }
+
+  ~BufferOutput() {
+    av_freep(&avio_ctx_->buffer);
+    avio_context_free(&avio_ctx_);
+  }
+
+  static int writePacket(void* opaque, uint8_t* buf, int buf_size) {
+    return reinterpret_cast<BufferOutput*>(opaque)->writePacketImpl(buf,
+                                                                    buf_size);
+  }
+
+  int writePacketImpl(uint8_t* buf, int buf_size) {
+    output_.insert(output_.end(), buf, buf + buf_size);
+    return buf_size;
+  }
+};
+
 //
 // AVFormatContext wrapper
 //
 
 struct FormatContext {
   AVFormatContext* ifmt_ctx_;
-  BufferInput& input_;
+  AVFormatContext* ofmt_ctx_;
+  BufferInput input_;
+  BufferOutput output_;
 
-  FormatContext(BufferInput& bytes_io) : input_{bytes_io} {
+  FormatContext(const std::vector<uint8_t>& input) : input_{input} {
+    // input
     ifmt_ctx_ = avformat_alloc_context();
     ASSERT(ifmt_ctx_);
     ifmt_ctx_->pb = input_.avio_ctx_;
+
+    // output
+    avformat_alloc_output_context2(&ofmt_ctx_, NULL, "opus", NULL);
+    ASSERT(ofmt_ctx_);
+    ofmt_ctx_->pb = output_.avio_ctx_;
   }
 
   ~FormatContext() {
@@ -97,6 +139,7 @@ struct FormatContext {
                               // avformat_close_input/avio_close without
                               // avio_open is not called yet internally
     avformat_close_input(&ifmt_ctx_);
+    avformat_free_context(ofmt_ctx_);
   }
 
   void openInput(bool debug = false) {
@@ -107,74 +150,44 @@ struct FormatContext {
     }
   }
 
-  std::vector<uint8_t> decodeAudio() {
-    // find audio stream
+  void runCopy() {
+    // find audio stream from input
     auto stream_index =
         av_find_best_stream(ifmt_ctx_, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
     ASSERT(stream_index >= 0);
-    AVStream* stream = ifmt_ctx_->streams[stream_index];
+    AVStream* in_stream = ifmt_ctx_->streams[stream_index];
+    ASSERT(in_stream);
 
-    // find decoder and instantiate AVCodecContext
-    const AVCodec* dec = avcodec_find_decoder(stream->codecpar->codec_id);
-    ASSERT(dec);
-    AVCodecContext* dec_ctx = avcodec_alloc_context3(dec);
-    ASSERT(dec_ctx);
-    DEFER {
-      avcodec_free_context(&dec_ctx);
-    };
-    ASSERT(avcodec_parameters_to_context(dec_ctx, stream->codecpar) >= 0);
-    avcodec_open2(dec_ctx, dec, NULL);
+    // add audio stream to output and configure codec parameter
+    AVStream* out_stream = avformat_new_stream(ofmt_ctx_, nullptr);
+    ASSERT(out_stream);
+    ASSERT(avcodec_parameters_copy(out_stream->codecpar, in_stream->codecpar) >=
+           0);
+    out_stream->time_base = in_stream->time_base;
 
-    // allocate AVFrame and AVPacket
-    AVFrame* frame = av_frame_alloc();
-    ASSERT(frame);
-    DEFER {
-      av_frame_free(&frame);
-    };
+    // allocate AVPacket
     AVPacket* pkt = av_packet_alloc();
     ASSERT(pkt);
     DEFER {
       av_packet_free(&pkt);
     };
 
-    // read and decode packets
+    // write header
+    ASSERT(avformat_write_header(ofmt_ctx_, nullptr) >= 0);
+
+    // copy packets
     std::vector<uint8_t> result;
     while (av_read_frame(ifmt_ctx_, pkt) >= 0) {
-      // dbg(pkt->pts, pkt->dts, pkt->duration);
-      if (pkt->stream_index == stream_index) {
-        decodePacket(dec_ctx, pkt, frame, result);
-      }
+      ASSERT(pkt->stream_index == stream_index);
+      pkt->stream_index = out_stream->index;
+      av_packet_rescale_ts(pkt, in_stream->time_base, out_stream->time_base);
+      ASSERT(av_interleaved_write_frame(ofmt_ctx_, pkt) == 0);
       av_packet_unref(pkt);
     }
-    decodePacket(dec_ctx, nullptr, frame, result);
-    return result;
-  }
+    ASSERT(av_interleaved_write_frame(ofmt_ctx_, nullptr) == 0);
 
-  static void decodePacket(AVCodecContext* dec_ctx,
-                           const AVPacket* pkt,
-                           AVFrame* frame,
-                           std::vector<uint8_t>& dest) {
-    ASSERT(avcodec_send_packet(dec_ctx, pkt) >= 0);
-    while (true) {
-      auto ret = avcodec_receive_frame(dec_ctx, frame);
-      if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
-        return;
-      }
-      ASSERT(ret >= 0);
-      outputFrame(frame, dest);
-      av_frame_unref(frame);
-    }
-  }
-
-  static void outputFrame(AVFrame* frame, std::vector<uint8_t>& dest) {
-    auto format = (enum AVSampleFormat)(frame->format);
-    auto fmt_name = av_get_sample_fmt_name(format);
-    ASSERT(fmt_name);
-    // e.g. (fltp, 2) = (floating point planer, 2 channels)
-    // dbg(fmt_name, frame->ch_layout.nb_channels);
-    size_t size = frame->nb_samples * av_get_bytes_per_sample(format);
-    uint8_t* src = frame->extended_data[0];
-    dest.insert(dest.end(), src, src + size);
+    // write trailer
+    av_write_trailer(ofmt_ctx_);
   }
 };
 
@@ -192,15 +205,14 @@ int main(int argc, const char** argv) {
     return 1;
   }
 
-  // avio
-  auto data = utils::readFile(in_file.value());
-  BufferInput bytes_io{data};
+  // read data
+  auto in_data = utils::readFile(in_file.value());
 
-  // avformat
-  FormatContext format_context(bytes_io);
+  // process
+  FormatContext format_context{in_data};
   format_context.openInput(true);
-  auto decoded = format_context.decodeAudio();
+  format_context.runCopy();
 
   // write raw audio
-  utils::writeFile(out_file.value(), decoded);
+  utils::writeFile(out_file.value(), format_context.output_.output_);
 }

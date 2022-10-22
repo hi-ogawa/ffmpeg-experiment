@@ -17,3 +17,6 @@ target_link_libraries(example ffmpeg)
 
 add_executable(example-02 src/example-02.cpp)
 target_link_libraries(example-02 ffmpeg)
+
+add_executable(example-03 src/example-03.cpp)
+target_link_libraries(example-03 ffmpeg)
