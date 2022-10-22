@@ -11,11 +11,11 @@
 // assertion
 //
 
-#define ASSERT(EXPR)                                                           \
-  if (!static_cast<bool>(EXPR)) {                                              \
-    std::ostringstream ostream;                                                \
-    ostream << "[" << __FILE__ << ":" << __LINE__ << "] " << #EXPR;            \
-    throw std::runtime_error{ostream.str()};                                   \
+#define ASSERT(EXPR)                                                \
+  if (!static_cast<bool>(EXPR)) {                                   \
+    std::ostringstream ostream;                                     \
+    ostream << "[" << __FILE__ << ":" << __LINE__ << "] " << #EXPR; \
+    throw std::runtime_error{ostream.str()};                        \
   }
 
 //
@@ -23,39 +23,43 @@
 //
 namespace std {
 
+// std::tuple
 template <class... Ts>
-ostream &operator<<(ostream &ostr, const tuple<Ts...> &xs) {
+ostream& operator<<(ostream& ostr, const tuple<Ts...>& xs) {
   ostr << "(";
   bool sep = false;
   apply(
-      [&](auto &&...x) { ((ostr << (sep ? ", " : "") << x, sep = true), ...); },
+      [&](auto&&... x) { ((ostr << (sep ? ", " : "") << x, sep = true), ...); },
       xs);
   return ostr << ")";
 }
 
+// std::pair
 template <class T1, class T2>
-ostream &operator<<(ostream &ostr, const pair<T1, T2> &x) {
+ostream& operator<<(ostream& ostr, const pair<T1, T2>& x) {
   return ostr << tie(x.first, x.second);
 }
 
-template <class T, class = decltype(begin(declval<T>())),
+// "container" except std::string
+template <class T,
+          class = decltype(begin(declval<T>())),
           class = enable_if_t<!is_same<T, string>::value>>
-ostream &operator<<(ostream &ostr, const T &xs) {
+ostream& operator<<(ostream& ostr, const T& xs) {
   ostr << "{";
   bool sep = false;
-  for (auto &x : xs) {
+  for (auto& x : xs) {
     ostr << (sep ? ", " : "") << x;
     sep = true;
   }
   return ostr << "}";
 }
 
-} // namespace std
+}  // namespace std
 
-#define dbg(...)                                                               \
-  do {                                                                         \
-    std::cout << #__VA_ARGS__ ": " << std::make_tuple(__VA_ARGS__)             \
-              << std::endl;                                                    \
+#define dbg(...)                                                   \
+  do {                                                             \
+    std::cout << #__VA_ARGS__ ": " << std::make_tuple(__VA_ARGS__) \
+              << std::endl;                                        \
   } while (0)
 
 //
@@ -64,7 +68,7 @@ ostream &operator<<(ostream &ostr, const T &xs) {
 
 namespace utils {
 
-std::vector<uint8_t> read_file(const std::string &filename) {
+std::vector<uint8_t> read_file(const std::string& filename) {
   std::ifstream istr(filename, std::ios::binary);
   ASSERT(istr.is_open());
   std::vector<uint8_t> data((std::istreambuf_iterator<char>(istr)),
@@ -72,7 +76,7 @@ std::vector<uint8_t> read_file(const std::string &filename) {
   return data;
 }
 
-} // namespace utils
+}  // namespace utils
 
 //
 // cli
@@ -82,16 +86,29 @@ namespace utils {
 
 struct Cli {
   const int argc;
-  const char **argv;
+  const char** argv;
+  std::vector<std::string> flags = {};
 
-  template <typename T> T parse(const char *s) {
+  std::string help() {
+    std::ostringstream ostr;
+    ostr << argv[0];
+    for (auto flag : flags) {
+      ostr << " (" << flag << " ?)";
+    }
+    return ostr.str();
+  }
+
+  template <typename T>
+  T parse(const char* s) {
     std::istringstream stream{s};
     T result;
     stream >> result;
     return result;
   }
 
-  template <typename T> std::optional<T> argument(const std::string &flag) {
+  template <typename T>
+  std::optional<T> argument(const std::string& flag) {
+    flags.push_back(flag);
     for (auto i = 1; i < argc; i++) {
       if (argv[i] == flag && i + 1 < argc) {
         return std::optional{parse<T>(argv[i + 1])};
@@ -101,4 +118,25 @@ struct Cli {
   }
 };
 
-} // namespace utils
+}  // namespace utils
+
+//
+// RAII wrapper (cf. https://stackoverflow.com/a/42060129)
+//
+
+template <class F>
+struct defer {
+  F f;
+  ~defer() { f(); }
+};
+
+struct defer_helper {
+  template <class F>
+  defer<F> operator*=(F f) {
+    return {f};
+  }
+};
+
+#define _DEFER_VAR2(x) _defer_var_##x
+#define _DEFER_VAR1(x) _DEFER_VAR2(x)
+#define DEFER auto _DEFER_VAR1(__LINE__) = defer_helper{} *= [&]()

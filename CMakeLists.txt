@@ -14,3 +14,6 @@ target_include_directories(ffmpeg INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/build/ff
 # example
 add_executable(example src/example.cpp)
 target_link_libraries(example ffmpeg)
+
+add_executable(example-02 src/example-02.cpp)
+target_link_libraries(example-02 ffmpeg)

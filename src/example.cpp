@@ -1,10 +1,10 @@
 // `av_dump_format` example based on
 // third_party/FFmpeg/doc/examples/avio_reading.c
 
-#include "utils.hpp"
 #include <cstring>
 #include <string>
 #include <vector>
+#include "utils.hpp"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -13,7 +13,7 @@ extern "C" {
 }
 
 struct Example {
-  AVFormatContext *fmt_ctx_;
+  AVFormatContext* fmt_ctx_;
 
   Example() {
     fmt_ctx_ = avformat_alloc_context();
@@ -28,18 +28,18 @@ struct Example {
 //
 
 struct Buffer {
-  AVIOContext *avio_ctx_;
-  void *avio_buffer_;         // ffmpeg internal buffer
-  std::vector<uint8_t> data_; // actual data
+  AVIOContext* avio_ctx_;
+  void* avio_buffer_;          // ffmpeg internal buffer
+  std::vector<uint8_t> data_;  // actual data
   std::vector<uint8_t>::iterator data_iter_;
 
   static constexpr size_t AVIO_BUFFER_SIZE = 1 << 12;
 
-  Buffer(const std::vector<uint8_t> &data) : data_{data} {
+  Buffer(const std::vector<uint8_t>& data) : data_{data} {
     data_iter_ = data_.begin();
     avio_buffer_ = av_malloc(AVIO_BUFFER_SIZE);
     ASSERT(avio_buffer_);
-    avio_ctx_ = avio_alloc_context(reinterpret_cast<uint8_t *>(avio_buffer_),
+    avio_ctx_ = avio_alloc_context(reinterpret_cast<uint8_t*>(avio_buffer_),
                                    AVIO_BUFFER_SIZE, 0, this,
                                    Buffer::read_packet, NULL, NULL);
     ASSERT(avio_ctx_);
@@ -50,11 +50,11 @@ struct Buffer {
     avio_context_free(&avio_ctx_);
   }
 
-  static int read_packet(void *opaque, uint8_t *buf, int buf_size) {
-    return reinterpret_cast<Buffer *>(opaque)->read_packet(buf, buf_size);
+  static int read_packet(void* opaque, uint8_t* buf, int buf_size) {
+    return reinterpret_cast<Buffer*>(opaque)->read_packet(buf, buf_size);
   }
 
-  int read_packet(uint8_t *dest, int req_size) {
+  int read_packet(uint8_t* dest, int req_size) {
     int remaining = data_.end() - data_iter_;
     int read_size = std::min(req_size, remaining);
     if (read_size == 0) {
@@ -71,7 +71,7 @@ struct Buffer {
 //
 
 struct Logger;
-Logger *g_logger = nullptr;
+Logger* g_logger = nullptr;
 
 struct Logger {
   std::vector<std::tuple<int, std::string>> logs_;
@@ -88,12 +88,11 @@ struct Logger {
     av_log_set_callback(av_log_default_callback);
   }
 
-  static void log_callback_main(void *, int level, const char *fmt,
-                                va_list vl) {
+  static void log_callback_main(void*, int level, const char* fmt, va_list vl) {
     g_logger->log_callback(level, fmt, vl);
   }
 
-  void log_callback(int level, const char *fmt, va_list vl) {
+  void log_callback(int level, const char* fmt, va_list vl) {
     auto log = format_log(fmt, vl);
     if (debug_) {
       std::cout << "[" << level << "] " << log << std::flush;
@@ -101,7 +100,7 @@ struct Logger {
     logs_.push_back(std::make_tuple(level, log));
   }
 
-  static std::string format_log(const char *fmt, va_list vl) {
+  static std::string format_log(const char* fmt, va_list vl) {
     // cf. https://stackoverflow.com/a/49812356
 
     // "dry run" to compute the length
@@ -124,7 +123,7 @@ struct Logger {
 // main
 //
 
-int main(int argc, const char **argv) {
+int main(int argc, const char** argv) {
   Logger logger;
   logger.debug_ = true;
 
