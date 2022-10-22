@@ -1,9 +1,10 @@
+// `av_dump_format` example based on
+// third_party/FFmpeg/doc/examples/avio_reading.c
+
 #include "utils.hpp"
 #include <cstring>
 #include <string>
 #include <vector>
-
-// based on third_party/FFmpeg/doc/examples/avio_reading.c
 
 extern "C" {
 #include <libavformat/avformat.h>
