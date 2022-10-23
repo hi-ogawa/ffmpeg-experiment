@@ -21,13 +21,13 @@ make -C build/native/ffmpeg install
 # build example
 cmake -G Ninja . -B build/native/Debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/native/Debug
-ldd ./build/native/Debug/example # verify ffmepg is linked statically
+ldd ./build/native/Debug/example-00 # verify ffmepg is linked statically
 
 # download test webm file
 youtube-dl -f 251 -o test.webm https://www.youtube.com/watch?v=le0BLAEO93g
 
 # print metadata
-./build/native/Debug/example --in test.webm
+./build/native/Debug/example-00 --in test.webm
 
 # demux/decode (webm -> raw audio)
 ./build/native/Debug/example-02 --in test.webm --out test.bin

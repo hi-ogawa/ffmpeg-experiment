@@ -3,6 +3,8 @@ project(ffmpeg-emscripten-demo LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -Wshadow -Wno-missing-braces)
+
+# sanitizer
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
   add_compile_options(-fsanitize=address -fsanitize=undefined)
   add_link_options(-fsanitize=address -fsanitize=undefined)
@@ -14,8 +16,8 @@ target_link_libraries(ffmpeg INTERFACE -L${CMAKE_BINARY_DIR}/../ffmpeg/prefix/li
 target_include_directories(ffmpeg INTERFACE ${CMAKE_BINARY_DIR}/../ffmpeg/prefix/include)
 
 # example
-add_executable(example src/example.cpp)
-target_link_libraries(example ffmpeg)
+add_executable(example-00 src/example-00.cpp)
+target_link_libraries(example-00 ffmpeg)
 
 add_executable(example-02 src/example-02.cpp)
 target_link_libraries(example-02 ffmpeg)
