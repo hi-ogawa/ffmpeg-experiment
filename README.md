@@ -32,7 +32,8 @@ ffplay -f f32le -ac 1 -ar 48000 test.bin
 ./build/cc/Debug/example-03 --in test.webm --out test.opus
 ffmpeg -i test.webm -c copy test.reference.opus
 
-# TODO transcode (webm -> opus)
+# transcode (webm -> opus) (TODO: not working. could be due to experimental ffmpeg's experimental opus encoder)
+./build/cc/Debug/example-04 --in test.webm --out test.opus
 
 # emscripten (inside `docker-compose run --rm emscripten`)
 # cmake . -B build/js/Debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
