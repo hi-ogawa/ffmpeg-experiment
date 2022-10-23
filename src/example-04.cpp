@@ -81,6 +81,7 @@ struct FormatContext {
     ASSERT(avformat_open_input(&ifmt_ctx_, NULL, NULL, NULL) == 0);
     ASSERT(avformat_find_stream_info(ifmt_ctx_, NULL) == 0);
     av_dump_format(ifmt_ctx_, 0, NULL, 0);
+    dbg(utils::mapFromAVDictionary(ifmt_ctx_->metadata));
 
     // find input audio stream
     auto stream_index =

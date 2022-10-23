@@ -1,10 +1,12 @@
 #pragma once
 
+#include <map>
 #include "utils.hpp"
 
 extern "C" {
 #include <libavformat/avio.h>
 #include <libavutil/avutil.h>
+#include <libavutil/dict.h>
 }
 
 #define ASSERT_AV(EXPR)                                                       \
@@ -20,6 +22,24 @@ extern "C" {
       throw std::runtime_error{ostr.str()};                                   \
     }                                                                         \
   } while (0)
+
+//
+// AVDictionary to std::map
+//
+
+namespace utils {
+
+std::map<std::string, std::string> mapFromAVDictionary(
+    const AVDictionary* dict) {
+  std::map<std::string, std::string> result;
+  AVDictionaryEntry* entry = nullptr;
+  while ((entry = av_dict_get(dict, "", entry, AV_DICT_IGNORE_SUFFIX))) {
+    result.insert({entry->key, entry->value});
+  }
+  return result;
+}
+
+}  // namespace utils
 
 //
 // AVIOContext wrapper for in-memory data
