@@ -65,7 +65,7 @@ make -C build/emscripten/ffmpeg install
 cmake . -B build/emscripten/Debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 cmake --build build/emscripten/Debug
 node ./src/emscripten-00-demo.js ./build/emscripten/Debug/emscripten-00.js test.webm
-node ./src/emscripten-01-demo.js ./build/emscripten/Debug/emscripten-01.js test.webm test.opus opus
+node ./src/emscripten-01-demo.js ./build/emscripten/Debug/emscripten-01.js test.webm test.opus opus "Vulfpeck" "Dean Town"
 ```
 
 ## TODO

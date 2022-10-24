@@ -14,8 +14,9 @@ extern "C" {
 // based on example-03
 //
 
-std::vector<uint8_t> run(std::vector<uint8_t> in_data,
-                         const std::string& out_format) {
+std::vector<uint8_t> run(const std::vector<uint8_t>& in_data,
+                         const std::string& out_format,
+                         const std::map<std::string, std::string>& metadata) {
   // input context
   BufferInput input_{in_data};
   AVFormatContext* ifmt_ctx_ = avformat_alloc_context();
@@ -38,6 +39,11 @@ std::vector<uint8_t> run(std::vector<uint8_t> in_data,
     avformat_free_context(ofmt_ctx_);
   };
   ofmt_ctx_->pb = output_.avio_ctx_;
+
+  // write metadata
+  for (auto [k, v] : metadata) {
+    av_dict_set(&ofmt_ctx_->metadata, k.c_str(), v.c_str(), 0);
+  }
 
   // input audio stream
   auto stream_index =
@@ -98,6 +104,7 @@ val Vector_view(const std::vector<T>& self) {
 
 EMSCRIPTEN_BINDINGS(emscripten_00) {
   register_vector<uint8_t>("Vector").function("view", &Vector_view<uint8_t>);
+  register_map<std::string, std::string>("StringMap");
 
   // "run" is reserved for emscripten exports
   function("runTest", &run);
