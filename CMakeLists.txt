@@ -15,6 +15,10 @@ add_library(ffmpeg INTERFACE)
 target_link_libraries(ffmpeg INTERFACE -L${CMAKE_BINARY_DIR}/../ffmpeg/prefix/lib -lavformat -lavcodec -lavutil -lswresample)
 target_include_directories(ffmpeg INTERFACE ${CMAKE_BINARY_DIR}/../ffmpeg/prefix/include)
 
+# json https://github.com/nlohmann/json
+add_library(json INTERFACE)
+target_include_directories(ffmpeg INTERFACE ${CMAKE_SOURCE_DIR}/third_party/json/single_include)
+
 # example
 add_executable(example-00 src/example-00.cpp)
 target_link_libraries(example-00 ffmpeg)
@@ -32,6 +36,6 @@ target_link_libraries(example-04 ffmpeg)
 get_filename_component(COMPILER_BASENAME "${CMAKE_C_COMPILER}" NAME)
 if (COMPILER_BASENAME STREQUAL emcc)
   add_executable(emscripten-00 src/emscripten-00.cpp)
-  target_link_libraries(emscripten-00 PRIVATE ffmpeg)
+  target_link_libraries(emscripten-00 PRIVATE ffmpeg json)
   target_link_options(emscripten-00 PRIVATE "SHELL: --bind -s ALLOW_MEMORY_GROWTH=1")
 endif()

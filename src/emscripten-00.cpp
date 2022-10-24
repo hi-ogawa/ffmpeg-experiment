@@ -1,4 +1,5 @@
 #include <cstring>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include "utils-ffmpeg.hpp"
 #include "utils.hpp"
@@ -30,9 +31,13 @@ std::string run(std::vector<uint8_t> in_data) {
   ASSERT(avformat_open_input(&ifmt_ctx_, NULL, NULL, NULL) == 0);
   ASSERT(avformat_find_stream_info(ifmt_ctx_, NULL) == 0);
 
-  std::ostringstream ostr;
-  ostr << utils::mapFromAVDictionary(ifmt_ctx_->metadata);
-  return ostr.str();
+  auto result = nlohmann::json::object(
+      {{"format_name", ifmt_ctx_->iformat->name},
+       {"duration", ifmt_ctx_->duration},
+       {"bit_rate", ifmt_ctx_->bit_rate},
+       {"nb_streams", ifmt_ctx_->nb_streams},
+       {"metadata", utils::mapFromAVDictionary(ifmt_ctx_->metadata)}});
+  return result.dump();
 }
 
 //
