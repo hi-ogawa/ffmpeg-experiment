@@ -128,7 +128,7 @@ int main(int argc, const char** argv) {
   logger.debug_ = true;
 
   utils::Cli cli{argc, argv};
-  auto infile = cli.argument<std::string>("-i").value_or("test.webm");
+  auto infile = cli.argument<std::string>("--in").value_or("test.webm");
 
   auto data = utils::readFile(infile);
   Buffer buffer(data);
