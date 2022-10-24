@@ -14,7 +14,7 @@ extern "C" {
 // based on example-04
 //
 
-std::string getFormatMetadata(std::vector<uint8_t> in_data) {
+std::string run(std::vector<uint8_t> in_data) {
   //
   // input
   //
@@ -53,5 +53,6 @@ val Vector_view(const std::vector<T>& self) {
 EMSCRIPTEN_BINDINGS(emscripten_00) {
   register_vector<uint8_t>("Vector").function("view", &Vector_view<uint8_t>);
 
-  function("getFormatMetadata", &getFormatMetadata);
+  // "run" is reserved for emscripten exports
+  function("runTest", &run);
 }
