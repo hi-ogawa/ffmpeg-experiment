@@ -1,5 +1,14 @@
 # ffmpeg-experiment
 
+## goals
+
+- using ffmpeg from c++
+- ffmpeg emscripten build
+- simple examples
+  - metadata manipulation
+  - demux, mux, decode, encode
+  - in-memory buffer for IO without file system
+
 ```sh
 git submodule update --init
 
@@ -67,14 +76,3 @@ cmake --build build/emscripten/Debug
 node ./src/emscripten-00-demo.js ./build/emscripten/Debug/emscripten-00.js test.webm
 node ./src/emscripten-01-demo.js ./build/emscripten/Debug/emscripten-01.js test.webm test.opus opus "Vulfpeck" "Dean Town"
 ```
-
-## TODO
-
-- c++ wrapper
-  - buffer to pass data between js/ffmpeg
-  - mux/codec context management
-- emscripten build
-  - static compile
-  - external library
-  - embind
-- mux/demux
