@@ -39,6 +39,8 @@ nlohmann::json runImpl(const std::vector<uint8_t>& in_data) {
        {"metadata", utils::mapFromAVDictionary(ifmt_ctx_->metadata)}});
 }
 
+// handle exception within c++ runtime so that we don't need emscripten's
+// exception support which can slow down many things
 std::string run(const std::vector<uint8_t>& in_data) {
   nlohmann::json result;
   try {

@@ -38,7 +38,7 @@ if (COMPILER_BASENAME STREQUAL emcc)
   add_executable(emscripten-00 src/emscripten-00.cpp)
   target_link_libraries(emscripten-00 PRIVATE ffmpeg json)
   target_compile_options(emscripten-00 PRIVATE "SHELL: -fexceptions")
-  target_link_options(emscripten-00 PRIVATE "SHELL: -fexceptions --bind -s ALLOW_MEMORY_GROWTH=1 -s EXCEPTION_CATCHING_ALLOWED=[run]")
+  target_link_options(emscripten-00 PRIVATE "SHELL: --bind -s ALLOW_MEMORY_GROWTH=1")
 
   add_executable(emscripten-01 src/emscripten-01.cpp)
   target_link_libraries(emscripten-01 PRIVATE ffmpeg json)
