@@ -20,7 +20,7 @@ git submodule update --init
 bash misc/ffmpeg-configure.sh "$PWD/build/native/ffmpeg" --prefix="$PWD/build/native/ffmpeg/prefix" \
   --disable-autodetect --disable-everything --disable-asm --disable-doc \
   --enable-protocol=file \
-  --enable-demuxer=webm_dash_manifest \
+  --enable-demuxer=webm_dash_manifest,ogg \
   --enable-muxer=opus \
   --enable-encoder=opus \
   --enable-decoder=opus
@@ -64,7 +64,7 @@ bash misc/ffmpeg-configure.sh "$PWD/build/emscripten/ffmpeg" --prefix="$PWD/buil
   --nm=/emsdk/upstream/bin/llvm-nm \
   --ranlib=/emsdk/upstream/emscripten/emranlib \
   --disable-autodetect --disable-everything --disable-asm --disable-doc --disable-programs \
-  --enable-demuxer=webm_dash_manifest \
+  --enable-demuxer=webm_dash_manifest,ogg \
   --enable-muxer=opus \
   --enable-encoder=opus \
   --enable-decoder=opus

@@ -15,7 +15,7 @@ extern "C" {
 // based on example-04
 //
 
-std::string run(std::vector<uint8_t> in_data) {
+nlohmann::json runImpl(const std::vector<uint8_t>& in_data) {
   //
   // input
   //
@@ -31,12 +31,23 @@ std::string run(std::vector<uint8_t> in_data) {
   ASSERT(avformat_open_input(&ifmt_ctx_, NULL, NULL, NULL) == 0);
   ASSERT(avformat_find_stream_info(ifmt_ctx_, NULL) == 0);
 
-  auto result = nlohmann::json::object(
+  return nlohmann::json::object(
       {{"format_name", ifmt_ctx_->iformat->name},
        {"duration", ifmt_ctx_->duration},
        {"bit_rate", ifmt_ctx_->bit_rate},
        {"nb_streams", ifmt_ctx_->nb_streams},
        {"metadata", utils::mapFromAVDictionary(ifmt_ctx_->metadata)}});
+}
+
+std::string run(const std::vector<uint8_t>& in_data) {
+  nlohmann::json result;
+  try {
+    result["ok"] = true;
+    result["data"] = runImpl(in_data);
+  } catch (const std::exception& e) {
+    result["ok"] = false;
+    result["data"] = e.what();
+  }
   return result.dump();
 }
 

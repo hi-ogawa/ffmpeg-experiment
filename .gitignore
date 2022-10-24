@@ -1,9 +1,7 @@
 build
 *.log
-
-# yt-dlp -f 251 -o test.webm https://www.youtube.com/watch?v=uWEcvd7wk3U
-# yt-dlp -f 140 -o test.m4a https://www.youtube.com/watch?v=uWEcvd7wk3U
 *.webm
 *.opus
 *.m4a
 *.bin
+*.mp4
