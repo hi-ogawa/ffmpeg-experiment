@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "docker-emscripten": "docker-compose run --rm emscripten",
+    "docker-emscripten": "DOCKER_USER=$(id -u):$(id -g) docker-compose run --rm emscripten",
     "clang-format": "clang-format -style=file -i $(find src -type f -name '*.cpp' -o -name '*.hpp')",
     "clang-format:check": "clang-format -style=file --dry-run --Werror $(find src -type f -name '*.cpp' -o -name '*.hpp')",
     "prettier": "prettier -w --cache .",
