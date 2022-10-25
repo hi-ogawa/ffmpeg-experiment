@@ -2,7 +2,10 @@
   "configurations": [
     {
       "name": "Linux",
-      "includePath": ["${workspaceFolder}/third_party/FFmpeg"],
+      "includePath": [
+        "${workspaceFolder}/third_party/FFmpeg",
+        "${workspaceFolder}/third_party/json/single_include"
+      ],
       "defines": [],
       "compilerPath": "/usr/bin/clang",
       "cStandard": "c17",

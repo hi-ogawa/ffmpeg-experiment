@@ -31,12 +31,33 @@ nlohmann::json runImpl(const std::vector<uint8_t>& in_data) {
   ASSERT(avformat_open_input(&ifmt_ctx_, NULL, NULL, NULL) == 0);
   ASSERT(avformat_find_stream_info(ifmt_ctx_, NULL) == 0);
 
-  return nlohmann::json::object(
+  auto info = nlohmann::json::object(
       {{"format_name", ifmt_ctx_->iformat->name},
        {"duration", ifmt_ctx_->duration},
        {"bit_rate", ifmt_ctx_->bit_rate},
-       {"nb_streams", ifmt_ctx_->nb_streams},
-       {"metadata", utils::mapFromAVDictionary(ifmt_ctx_->metadata)}});
+       {"metadata", utils::mapFromAVDictionary(ifmt_ctx_->metadata)},
+       {"streams", nlohmann::json::array()}});
+
+  for (unsigned int i = 0; i < ifmt_ctx_->nb_streams; i++) {
+    auto stream = ifmt_ctx_->streams[i];
+    auto streamInfo = nlohmann::json::object(
+        {{"type", nullptr},
+         {"codec", nullptr},
+         {"metadata", utils::mapFromAVDictionary(stream->metadata)}});
+
+    const AVCodec* codec = avcodec_find_decoder(stream->codecpar->codec_id);
+    if (codec) {
+      streamInfo["codec"] = codec->name;
+      auto type_string =
+          codec ? av_get_media_type_string(codec->type) : nullptr;
+      if (type_string) {
+        streamInfo["type"] = type_string;
+      }
+    }
+    info["streams"].push_back(streamInfo);
+  }
+
+  return info;
 }
 
 // handle exception within c++ runtime so that we don't need emscripten's
@@ -50,7 +71,7 @@ std::string run(const std::vector<uint8_t>& in_data) {
     result["ok"] = false;
     result["data"] = e.what();
   }
-  return result.dump();
+  return result.dump(2);
 }
 
 //
