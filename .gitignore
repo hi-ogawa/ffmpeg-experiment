@@ -1,1 +1,9 @@
+node_modules
 build
+*.log
+*.webm
+*.opus
+*.m4a
+*.bin
+*.mp4
+!/misc/test.webm

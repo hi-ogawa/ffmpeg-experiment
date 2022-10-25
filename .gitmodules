@@ -1,3 +1,9 @@
 [submodule "third_party/FFmpeg"]
 	path = third_party/FFmpeg
 	url = git@github.com:FFmpeg/FFmpeg.git
+[submodule "third_party/json"]
+	path = third_party/json
+	url = git@github.com:nlohmann/json.git
+[submodule "third_party/emscripten"]
+	path = third_party/emscripten
+	url = git@github.com:emscripten-core/emscripten.git
