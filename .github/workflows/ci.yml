@@ -31,7 +31,7 @@ jobs:
             --nm=/emsdk/upstream/bin/llvm-nm \
             --ranlib=/emsdk/upstream/emscripten/emranlib \
             --disable-autodetect --disable-everything --disable-asm --disable-doc --disable-programs \
-            --enable-demuxer=webm_dash_manifest,opus \
+            --enable-demuxer=webm_dash_manifest,ogg \
             --enable-muxer=opus \
             --enable-encoder=opus \
             --enable-decoder=opus
