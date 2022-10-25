@@ -3,6 +3,7 @@
     {
       "name": "Linux",
       "includePath": [
+        "${workspaceFolder}/third_party/emscripten/system/include",
         "${workspaceFolder}/third_party/FFmpeg",
         "${workspaceFolder}/third_party/json/single_include"
       ],
