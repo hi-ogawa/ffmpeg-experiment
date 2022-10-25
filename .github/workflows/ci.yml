@@ -15,11 +15,6 @@ jobs:
       # TODO: clang-format on CI
       - run: pnpm prettier:check
 
-      - name: download demo webm
-        run: |
-          sudo apt-get install -y youtube-dl
-          youtube-dl -f 251 -o test.webm https://www.youtube.com/watch?v=le0BLAEO93g
-
       #
       # ffmpeg
       #
@@ -34,7 +29,7 @@ jobs:
             --nm=/emsdk/upstream/bin/llvm-nm \
             --ranlib=/emsdk/upstream/emscripten/emranlib \
             --disable-autodetect --disable-everything --disable-asm --disable-doc --disable-programs \
-            --enable-demuxer=webm_dash_manifest,ogg \
+            --enable-demuxer=webm_dash_manifest,opus \
             --enable-muxer=opus \
             --enable-encoder=opus \
             --enable-decoder=opus
@@ -56,6 +51,6 @@ jobs:
 
       - name: example (run)
         run: |
-          node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js test.webm
-          node ./src/emscripten-01-demo.js ./build/emscripten/Release/emscripten-01.js test.webm test.opus opus "Vulfpeck" "Dean Town"
-          node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js test.opus
+          node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js misc/test.webm
+          node ./src/emscripten-01-demo.js ./build/emscripten/Release/emscripten-01.js misc/test.webm misc/test.opus opus "Vulfpeck" "Dean Town"
+          node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js misc/test.opus

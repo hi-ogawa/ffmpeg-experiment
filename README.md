@@ -20,7 +20,7 @@ git submodule update --init
 bash misc/ffmpeg-configure.sh "$PWD/build/native/ffmpeg" --prefix="$PWD/build/native/ffmpeg/prefix" \
   --disable-autodetect --disable-everything --disable-asm --disable-doc \
   --enable-protocol=file \
-  --enable-demuxer=webm_dash_manifest,ogg \
+  --enable-demuxer=webm_dash_manifest,opus \
   --enable-muxer=opus \
   --enable-encoder=opus \
   --enable-decoder=opus
@@ -55,7 +55,7 @@ ffmpeg -i test.webm -c copy test.reference.opus
 
 # https://github.com/FFmpeg/FFmpeg/blob/81bc4ef14292f77b7dcea01b00e6f2ec1aea4b32/configure#L371-L401
 # https://github.com/emscripten-core/emscripten/blob/00daf403cd09467c6dab841b873710bb878535b2/tools/building.py#L63-L83
-bash misc/ffmpeg-configure.sh "$PWD/build/emscripten/ffmpeg" --prefix="$PWD/build/emscripten/ffmpeg/prefix" \
+bash misc/ffmpeg-configure.sh "/app/build/emscripten/ffmpeg" --prefix="/app/build/emscripten/ffmpeg/prefix" \
   --enable-cross-compile \
   --cc=/emsdk/upstream/emscripten/emcc \
   --cxx=/emsdk/upstream/emscripten/em++ \
@@ -64,7 +64,7 @@ bash misc/ffmpeg-configure.sh "$PWD/build/emscripten/ffmpeg" --prefix="$PWD/buil
   --nm=/emsdk/upstream/bin/llvm-nm \
   --ranlib=/emsdk/upstream/emscripten/emranlib \
   --disable-autodetect --disable-everything --disable-asm --disable-doc --disable-programs \
-  --enable-demuxer=webm_dash_manifest,ogg \
+  --enable-demuxer=webm_dash_manifest,opus \
   --enable-muxer=opus \
   --enable-encoder=opus \
   --enable-decoder=opus
