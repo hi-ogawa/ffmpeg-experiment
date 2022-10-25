@@ -12,4 +12,50 @@ jobs:
         with:
           version: 7
       - run: pnpm i --frozen-lockfile
-      - run: pnpm lint:check
+      # TODO: clang-format on CI
+      - run: pnpm prettier:check
+
+      - name: download demo webm
+        run: |
+          sudo apt-get install -y youtube-dl
+          youtube-dl -f 251 -o test.webm https://www.youtube.com/watch?v=le0BLAEO93g
+
+      #
+      # ffmpeg
+      #
+      - name: ffmpeg (configure)
+        run: |
+          pnpm docker-emscripten bash misc/ffmpeg-configure.sh "/app/build/emscripten/ffmpeg" --prefix="/app/build/emscripten/ffmpeg/prefix" \
+            --enable-cross-compile \
+            --cc=/emsdk/upstream/emscripten/emcc \
+            --cxx=/emsdk/upstream/emscripten/em++ \
+            --ar=/emsdk/upstream/emscripten/emar \
+            --ld=/emsdk/upstream/emscripten/emcc \
+            --nm=/emsdk/upstream/bin/llvm-nm \
+            --ranlib=/emsdk/upstream/emscripten/emranlib \
+            --disable-autodetect --disable-everything --disable-asm --disable-doc --disable-programs \
+            --enable-demuxer=webm_dash_manifest,ogg \
+            --enable-muxer=opus \
+            --enable-encoder=opus \
+            --enable-decoder=opus
+
+      - name: ffmpeg (build)
+        run: pnpm docker-emscripten make -j -C build/emscripten/ffmpeg
+
+      - name: ffmpeg (install)
+        run: pnpm docker-emscripten make -C build/emscripten/ffmpeg install
+
+      #
+      # example
+      #
+      - name: example (configure)
+        run: pnpm docker-emscripten cmake . -B build/emscripten/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+
+      - name: example (build)
+        run: pnpm docker-emscripten cmake --build build/emscripten/Release
+
+      - name: example (run)
+        run: |
+          node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js test.webm
+          node ./src/emscripten-01-demo.js ./build/emscripten/Release/emscripten-01.js test.webm test.opus opus "Vulfpeck" "Dean Town"
+          node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js test.opus
