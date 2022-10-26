@@ -3,7 +3,9 @@
 // https://github.com/FFmpeg/FFmpeg/blob/81bc4ef14292f77b7dcea01b00e6f2ec1aea4b32/fftools/ffmpeg.c#L1782
 
 #include <cstring>
+#include <map>
 #include <optional>
+#include "opusenc-picture.hpp"
 #include "utils.hpp"
 
 extern "C" {
@@ -122,7 +124,9 @@ struct FormatContext {
   BufferInput input_;
   BufferOutput output_;
 
-  FormatContext(const std::vector<uint8_t>& input) : input_{input} {
+  FormatContext(const std::vector<uint8_t>& input,
+                const std::map<std::string, std::string>& metadata)
+      : input_{input} {
     // input
     ifmt_ctx_ = avformat_alloc_context();
     ASSERT(ifmt_ctx_);
@@ -132,6 +136,11 @@ struct FormatContext {
     avformat_alloc_output_context2(&ofmt_ctx_, NULL, "opus", NULL);
     ASSERT(ofmt_ctx_);
     ofmt_ctx_->pb = output_.avio_ctx_;
+
+    // set metadata
+    for (auto [k, v] : metadata) {
+      av_dict_set(&ofmt_ctx_->metadata, k.c_str(), v.c_str(), 0);
+    }
   }
 
   ~FormatContext() {
@@ -199,6 +208,7 @@ int main(int argc, const char** argv) {
   // parse arguments
   utils::Cli cli{argc, argv};
   auto in_file = cli.argument<std::string>("--in");
+  auto in_picture_file = cli.argument<std::string>("--in-picture");
   auto out_file = cli.argument<std::string>("--out");
   if (!in_file || !out_file) {
     std::cout << cli.help() << std::endl;
@@ -208,8 +218,15 @@ int main(int argc, const char** argv) {
   // read data
   auto in_data = utils::readFile(in_file.value());
 
+  // pass picture as metadata
+  std::map<std::string, std::string> metadata;
+  if (in_picture_file) {
+    auto picture_data = utils::readFile(in_picture_file.value());
+    metadata[opusenc_picture::TAG] = opusenc_picture::encode(picture_data);
+  }
+
   // process
-  FormatContext format_context{in_data};
+  FormatContext format_context{in_data, metadata};
   format_context.openInput(true);
   format_context.runCopy();
 

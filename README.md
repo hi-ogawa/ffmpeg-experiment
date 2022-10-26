@@ -32,8 +32,9 @@ cmake -G Ninja . -B build/native/Debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/native/Debug
 ldd ./build/native/Debug/example-00 # verify ffmepg is linked statically
 
-# download test webm file
+# download test files (webm and jpg)
 youtube-dl -f 251 -o test.webm https://www.youtube.com/watch?v=le0BLAEO93g
+wget -O test.jpg https://i.ytimg.com/vi/uWEcvd7wk3U/maxresdefault.jpg
 
 # print metadata
 ./build/native/Debug/example-00 --in test.webm
@@ -44,7 +45,10 @@ ffplay -f f32le -ac 1 -ar 48000 test.bin
 
 # extract audio (webm -> opus)
 ./build/native/Debug/example-03 --in test.webm --out test.opus
-ffmpeg -i test.webm -c copy test.reference.opus
+ffmpeg -i test.webm -c copy test.reference.opus  # compare with ffmpeg
+
+# extract audio with cover art
+./build/native/Debug/example-03 --in test.webm --in-picture test.jpg --out test.opus
 
 # transcode (webm -> opus) (TODO: not working. could be due to experimental ffmpeg's experimental opus encoder)
 ./build/native/Debug/example-04 --in test.webm --out test.opus

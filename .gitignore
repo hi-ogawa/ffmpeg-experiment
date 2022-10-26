@@ -6,4 +6,6 @@ build
 *.m4a
 *.bin
 *.mp4
+*.jpg
+*.wav
 !/misc/test.webm
