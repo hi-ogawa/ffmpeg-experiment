@@ -9,6 +9,11 @@
   - demux, mux, decode, encode
   - in-memory buffer for IO without file system
 
+## todo
+
+- mux opus and vp9 into single webm
+- static link ffmpeg external library (e.g. mp4)
+
 ```sh
 git submodule update --init
 
