@@ -108,13 +108,17 @@ struct Cli {
 
   template <typename T>
   T parse(const char* s) {
-    std::istringstream stream{s};
-    T result;
-    stream >> result;
-    return result;
+    if constexpr (std::is_same_v<T, std::string>) {
+      return std::string{s};
+    } else {
+      std::istringstream stream{s};
+      T result;
+      stream >> result;
+      return result;
+    }
   }
 
-  template <typename T>
+  template <typename T = std::string>
   std::optional<T> argument(const std::string& flag) {
     flags.push_back(flag);
     for (auto i = 1; i < argc; i++) {

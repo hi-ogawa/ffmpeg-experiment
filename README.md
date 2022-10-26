@@ -32,8 +32,9 @@ cmake -G Ninja . -B build/native/Debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/native/Debug
 ldd ./build/native/Debug/example-00 # verify ffmepg is linked statically
 
-# download test webm file
+# download test files (webm and jpg)
 youtube-dl -f 251 -o test.webm https://www.youtube.com/watch?v=le0BLAEO93g
+wget -O test.jpg https://i.ytimg.com/vi/le0BLAEO93g/maxresdefault.jpg
 
 # print metadata
 ./build/native/Debug/example-00 --in test.webm
@@ -44,7 +45,10 @@ ffplay -f f32le -ac 1 -ar 48000 test.bin
 
 # extract audio (webm -> opus)
 ./build/native/Debug/example-03 --in test.webm --out test.opus
-ffmpeg -i test.webm -c copy test.reference.opus
+ffmpeg -i test.webm -c copy test.reference.opus  # compare with ffmpeg
+
+# extract audio and embed metadata and cover art
+./build/native/Debug/example-03 --in test.webm --out test.opus --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }' --in-picture test.jpg
 
 # transcode (webm -> opus) (TODO: not working. could be due to experimental ffmpeg's experimental opus encoder)
 ./build/native/Debug/example-04 --in test.webm --out test.opus
@@ -73,12 +77,13 @@ make -C build/emscripten/ffmpeg install
 
 cmake . -B build/emscripten/Debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 cmake --build build/emscripten/Debug
-# demo js code is supposed to be run outside of `docker-compose run`
+# demo js code should be run outside of `docker-compose run`
 node ./src/emscripten-00-demo.js ./build/emscripten/Debug/emscripten-00.js test.webm
-node ./src/emscripten-01-demo.js ./build/emscripten/Debug/emscripten-01.js test.webm test.opus opus "Vulfpeck" "Dean Town"
+node ./src/emscripten-01-demo.js --module ./build/emscripten/Debug/emscripten-01.js --in test.webm --out test.opus --in-picture test.jpg --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }'
 
+# optimized build
 cmake . -B build/emscripten/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 cmake --build build/emscripten/Release
 node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js test.webm
-node ./src/emscripten-01-demo.js ./build/emscripten/Release/emscripten-01.js test.webm test.opus opus "Vulfpeck" "Dean Town"
+node ./src/emscripten-01-demo.js --module ./build/emscripten/Release/emscripten-01.js --in test.webm --out test.opus --in-picture test.jpg --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }'
 ```

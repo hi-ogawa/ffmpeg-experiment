@@ -1,5 +1,6 @@
 #include <cstring>
 #include <optional>
+#include "opusenc-picture.hpp"
 #include "utils-ffmpeg.hpp"
 #include "utils.hpp"
 
@@ -14,9 +15,10 @@ extern "C" {
 // based on example-03
 //
 
-std::vector<uint8_t> run(const std::vector<uint8_t>& in_data,
-                         const std::string& out_format,
-                         const std::map<std::string, std::string>& metadata) {
+std::vector<uint8_t> convert(
+    const std::vector<uint8_t>& in_data,
+    const std::string& out_format,
+    const std::map<std::string, std::string>& metadata) {
   // input context
   BufferInput input_{in_data};
   AVFormatContext* ifmt_ctx_ = avformat_alloc_context();
@@ -87,6 +89,10 @@ std::vector<uint8_t> run(const std::vector<uint8_t>& in_data,
   return output_.output_;
 }
 
+std::string encodePictureMetadata(const std::vector<uint8_t>& data) {
+  return opusenc_picture::encode(data);
+}
+
 //
 // embind
 //
@@ -102,10 +108,10 @@ val Vector_view(const std::vector<T>& self) {
   return val(typed_memory_view(self.size(), self.data()));
 }
 
-EMSCRIPTEN_BINDINGS(emscripten_00) {
+EMSCRIPTEN_BINDINGS(emscripten_01) {
   register_vector<uint8_t>("Vector").function("view", &Vector_view<uint8_t>);
   register_map<std::string, std::string>("StringMap");
 
-  // "run" is reserved for emscripten exports
-  function("runTest", &run);
+  function("convert", &convert);
+  function("encodePictureMetadata", &encodePictureMetadata);
 }
