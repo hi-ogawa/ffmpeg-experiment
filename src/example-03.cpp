@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <map>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include "opusenc-picture.hpp"
 #include "utils.hpp"
@@ -207,9 +208,10 @@ struct FormatContext {
 int main(int argc, const char** argv) {
   // parse arguments
   utils::Cli cli{argc, argv};
-  auto in_file = cli.argument<std::string>("--in");
-  auto in_picture_file = cli.argument<std::string>("--in-picture");
-  auto out_file = cli.argument<std::string>("--out");
+  auto in_file = cli.argument("--in");
+  auto in_picture_file = cli.argument("--in-picture");
+  auto in_metadata = cli.argument("--in-metadata");
+  auto out_file = cli.argument("--out");
   if (!in_file || !out_file) {
     std::cout << cli.help() << std::endl;
     return 1;
@@ -218,8 +220,20 @@ int main(int argc, const char** argv) {
   // read data
   auto in_data = utils::readFile(in_file.value());
 
-  // pass picture as metadata
+  // prepare metadata
   std::map<std::string, std::string> metadata;
+
+  // simple key/value
+  if (in_metadata) {
+    auto data = nlohmann::json::parse(in_metadata.value());
+    ASSERT(data.is_object());
+    for (auto& prop : data.items()) {
+      ASSERT(prop.value().is_string())
+      metadata[prop.key()] = prop.value().get<std::string>();
+    }
+  }
+
+  // cover art
   if (in_picture_file) {
     auto picture_data = utils::readFile(in_picture_file.value());
     metadata[opusenc_picture::TAG] = opusenc_picture::encode(picture_data);

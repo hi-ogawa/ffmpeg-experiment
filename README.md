@@ -47,8 +47,8 @@ ffplay -f f32le -ac 1 -ar 48000 test.bin
 ./build/native/Debug/example-03 --in test.webm --out test.opus
 ffmpeg -i test.webm -c copy test.reference.opus  # compare with ffmpeg
 
-# extract audio with cover art
-./build/native/Debug/example-03 --in test.webm --in-picture test.jpg --out test.opus
+# extract audio and embed metadata and cover art
+./build/native/Debug/example-03 --in test.webm --out test.opus --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }' --in-picture test.jpg
 
 # transcode (webm -> opus) (TODO: not working. could be due to experimental ffmpeg's experimental opus encoder)
 ./build/native/Debug/example-04 --in test.webm --out test.opus
