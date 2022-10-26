@@ -34,7 +34,7 @@ ldd ./build/native/Debug/example-00 # verify ffmepg is linked statically
 
 # download test files (webm and jpg)
 youtube-dl -f 251 -o test.webm https://www.youtube.com/watch?v=le0BLAEO93g
-wget -O test.jpg https://i.ytimg.com/vi/uWEcvd7wk3U/maxresdefault.jpg
+wget -O test.jpg https://i.ytimg.com/vi/le0BLAEO93g/maxresdefault.jpg
 
 # print metadata
 ./build/native/Debug/example-00 --in test.webm

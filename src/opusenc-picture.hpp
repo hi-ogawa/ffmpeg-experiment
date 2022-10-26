@@ -67,6 +67,11 @@ inline size_t BASE64_LENGTH(size_t len) {
   return ((len) + 2) / 3 * 4;
 }
 
+inline uint32_t READ_U32_BE(const uint8_t* buf) {
+  return (((opus_uint32)(buf)[0] << 24) | ((buf)[1] << 16) | ((buf)[2] << 8) |
+          (buf)[3]);
+}
+
 //
 // mostly copy and paste
 //
@@ -152,10 +157,6 @@ inline int is_gif(const unsigned char* buf, size_t length) {
   return length >= 6 &&
          (memcmp(buf, "GIF87a", 6) == 0 || memcmp(buf, "GIF89a", 6) == 0);
 }
-
-#define READ_U32_BE(buf)                                                \
-  (((opus_uint32)(buf)[0] << 24) | ((buf)[1] << 16) | ((buf)[2] << 8) | \
-   (buf)[3])
 
 /*Tries to extract the width, height, bits per pixel, and palette size of a
    PNG.
