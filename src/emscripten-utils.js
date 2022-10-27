@@ -1,11 +1,4 @@
-function importEmscriptenModule(modulePath) {
-  return new Promise((resolve) => {
-    const Module = require(modulePath);
-    Module.onRuntimeInitialized = () => {
-      resolve(Module);
-    };
-  });
-}
+const fs = require("fs");
 
 class Cli {
   constructor(argv) {
@@ -20,4 +13,11 @@ class Cli {
   }
 }
 
-module.exports = { importEmscriptenModule, Cli };
+function readFileToVector(vector, filename) {
+  const buffer = fs.readFileSync(filename);
+  vector.resize(buffer.length, 0);
+  vector.view().set(new Uint8Array(buffer));
+  return vector;
+}
+
+module.exports = { Cli, readFileToVector };

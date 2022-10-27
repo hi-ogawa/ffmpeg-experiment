@@ -11,6 +11,8 @@
 
 ## todo
 
+- test on browser
+- create npm package
 - mux opus and vp9 into single webm
 - static link ffmpeg external library (e.g. mp4)
 

@@ -1,14 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const assert = require("assert/strict");
-const { importEmscriptenModule, Cli } = require("./emscripten-utils.js");
-
-function readFileToVector(vector, filename) {
-  const buffer = fs.readFileSync(filename);
-  vector.resize(buffer.length, 0);
-  vector.view().set(new Uint8Array(buffer));
-  return vector;
-}
+const { Cli, readFileToVector } = require("./emscripten-utils.js");
 
 async function main() {
   const cli = new Cli(process.argv.slice(2));
@@ -20,7 +13,7 @@ async function main() {
   const outFormat = outFile.split(".").at(-1);
 
   // initialize wasm
-  const lib = await importEmscriptenModule(path.resolve(modulePath));
+  const lib = await require(path.resolve(modulePath))();
 
   // load file data into wasm heap via embind vector
   const inData = readFileToVector(new lib.Vector(), inFile);
