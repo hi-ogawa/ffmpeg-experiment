@@ -1,6 +1,8 @@
 {
   "scripts": {
     "docker-emscripten": "DOCKER_USER=$(id -u):$(id -g) docker-compose run --rm emscripten",
+    "dev": "pnpm -r --parallel dev",
+    "copy-package": "rm -rf packages/ffmpeg-experiment/build && mkdir -p packages/ffmpeg-experiment/build && cp -f build/emscripten/Release/emscripten-01.js packages/ffmpeg-experiment/build/index.js && cp -f build/emscripten/Release/emscripten-01.wasm packages/ffmpeg-experiment/build/index.wasm",
     "clang-format": "clang-format -style=file -i $(find src -type f -name '*.cpp' -o -name '*.hpp')",
     "clang-format:check": "clang-format -style=file --dry-run --Werror $(find src -type f -name '*.cpp' -o -name '*.hpp')",
     "prettier": "prettier -w --cache .",

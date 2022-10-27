@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "dev": "vite --no-clearScreen",
+    "build": "vite build --outDir build"
+  },
+  "devDependencies": {
+    "@tsconfig/strictest": "^1.0.2",
+    "@types/react": "^18.0.20",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^2.1.0",
+    "vite": "^3.1.1",
+    "vite-plugin-windicss": "^1.8.8"
+  },
+  "dependencies": {
+    "@hiogawa/ffmpeg-experiment": "workspace:*",
+    "@tanstack/react-query": "^4.3.4",
+    "@tanstack/react-query-devtools": "^4.3.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.35.0",
+    "react-remove-scroll": "^2.5.5"
+  }
+}
