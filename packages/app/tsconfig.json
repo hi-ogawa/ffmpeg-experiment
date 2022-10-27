@@ -2,6 +2,7 @@
   "extends": "@tsconfig/strictest",
   "include": ["src"],
   "compilerOptions": {
+    "exactOptionalPropertyTypes": false, // too strict
     "noEmit": true,
     "module": "esnext",
     "moduleResolution": "node",

@@ -101,5 +101,6 @@ node ./src/emscripten-01-demo.js --module ./build/emscripten/Release/emscripten-
 
 ```sh
 pnpm i
+pnpm create-package
 pnpm dev
 ```

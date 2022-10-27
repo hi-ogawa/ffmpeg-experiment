@@ -16,30 +16,40 @@ importers:
       '@tanstack/react-query': ^4.3.4
       '@tanstack/react-query-devtools': ^4.3.5
       '@tsconfig/strictest': ^1.0.2
+      '@types/lodash': ^4.14.186
       '@types/react': ^18.0.20
       '@types/react-dom': ^18.0.6
       '@vitejs/plugin-react': ^2.1.0
+      comlink: ^4.3.1
+      lodash: ^4.17.21
       react: ^18.2.0
       react-dom: ^18.2.0
       react-hook-form: ^7.35.0
+      react-hot-toast: ^2.4.0
       react-remove-scroll: ^2.5.5
       vite: ^3.1.1
       vite-plugin-windicss: ^1.8.8
+      windicss: ^3.5.6
     dependencies:
       '@hiogawa/ffmpeg-experiment': link:../ffmpeg-experiment
       '@tanstack/react-query': 4.13.0_biqbaboplfbrettd7655fr4n2y
       '@tanstack/react-query-devtools': 4.13.0_vwr3yfyniquaygdm2roeczqxuu
+      comlink: 4.3.1
+      lodash: 4.17.21
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-hook-form: 7.38.0_react@18.2.0
+      react-hot-toast: 2.4.0_biqbaboplfbrettd7655fr4n2y
       react-remove-scroll: 2.5.5_i2izv7j3km4zzxbpzq2d4xtojy
     devDependencies:
       '@tsconfig/strictest': 1.0.2
+      '@types/lodash': 4.14.186
       '@types/react': 18.0.23
       '@types/react-dom': 18.0.7
       '@vitejs/plugin-react': 2.2.0_vite@3.2.0
       vite: 3.2.0
       vite-plugin-windicss: 1.8.8_vite@3.2.0
+      windicss: 3.5.6
 
   packages/ffmpeg-experiment:
     specifiers: {}
@@ -442,6 +452,10 @@ packages:
     resolution: {integrity: sha512-IRKlC8cnP7zMz1SDBjyIVyPapkEGWLZ6wkF6Z8T+xU80P9sO5uGXlIUvtzjx+7ehPJRWxkB6CeIDwUfyqNtYkQ==}
     dev: true
 
+  /@types/lodash/4.14.186:
+    resolution: {integrity: sha512-eHcVlLXP0c2FlMPm56ITode2AgLMSa6aJ05JTTbYbI+7EMkCEE5qk2E41d5g2lCVTqRe0GnnRFurmlCsDODrPw==}
+    dev: true
+
   /@types/prop-types/15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
 
@@ -568,6 +582,10 @@ packages:
   /color-name/1.1.3:
     resolution: {integrity: sha512-72fSenhMw2HZMTVHeCA9KCmpEIbzWiQsjN+BHcBbS9vr1mtt+vJjPdksIBNUmKAW8TFUDPJK5SUU3QhE9NEXDw==}
     dev: true
+
+  /comlink/4.3.1:
+    resolution: {integrity: sha512-+YbhUdNrpBZggBAHWcgQMLPLH1KDF3wJpeqrCKieWQ8RL7atmgsgTQko1XEBK6PsecfopWNntopJ+ByYG1lRaA==}
+    dev: false
 
   /concat-map/0.0.1:
     resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=}
@@ -979,6 +997,12 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
+  /goober/2.1.11:
+    resolution: {integrity: sha512-5SS2lmxbhqH0u9ABEWq7WPU69a4i2pYcHeCxqaNq6Cw3mnrF0ghWNM4tEGid4dKy8XNIAUbuThuozDHHKJVh3A==}
+    peerDependencies:
+      csstype: ^3.0.10
+    dev: false
+
   /graceful-fs/4.2.10:
     resolution: {integrity: sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==}
     dev: true
@@ -1182,6 +1206,10 @@ packages:
       strip-bom: 3.0.0
     dev: true
 
+  /lodash/4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: false
+
   /loose-envify/1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
@@ -1362,6 +1390,20 @@ packages:
       react: ^16.8.0 || ^17 || ^18
     dependencies:
       react: 18.2.0
+    dev: false
+
+  /react-hot-toast/2.4.0_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-qnnVbXropKuwUpriVVosgo8QrB+IaPJCpL8oBI6Ov84uvHZ5QQcTp2qg6ku2wNfgJl6rlQXJIQU5q+5lmPOutA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16'
+      react-dom: '>=16'
+    dependencies:
+      goober: 2.1.11
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    transitivePeerDependencies:
+      - csstype
     dev: false
 
   /react-refresh/0.14.0:

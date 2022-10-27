@@ -1,11 +1,31 @@
-interface EmscriptenModuleArg {
-  locateFile: () => string;
+//
+// exports
+//
+
+class Vector {
+  resize(length: number, fillValue: number): void;
+  view(): Uint8Array;
 }
 
-interface EmscriptenModule {
-  wasmToOpus: () => void;
+class StringMap {
+  set(k: string, v: string): void;
 }
 
-type EmscriptenExport = (arg: EmscriptenModuleArg) => Promise<EmscriptenModule>;
+const convert: (
+  inData: Vector,
+  outFormat: string,
+  metadata: StringMap
+) => Vector;
 
-export = EmscriptenExport;
+const encodePictureMetadata: (inData: Vector) => string;
+
+const moduleExports = { Vector, StringMap, convert, encodePictureMetadata };
+
+export type ModuleExports = typeof moduleExports;
+
+//
+// MODULARIZE entrypoint
+//
+
+function init(arg: initArg): Promise<ModuleExports>;
+export = init;
