@@ -213,7 +213,7 @@ async function processFile(
   // TODO: URL.revokeObjectURL
   const url = URL.createObjectURL(new Blob([output]));
   const name =
-    ([data.artist, data.album, data.title].filter(Boolean).join(" / ") ||
+    ([data.artist, data.album, data.title].filter(Boolean).join(" - ") ||
       "download") + ".opus";
   return { url, name };
 }
