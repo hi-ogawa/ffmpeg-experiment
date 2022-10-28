@@ -13,7 +13,7 @@
     "url": "https://github.com/hi-ogawa/ffmpeg-experiment"
   },
   "scripts": {
-    "build": "rm -rf build && mkdir -p build && cp -f ../../build/emscripten/Release/emscripten-01.js build/index.js && cp -f ../../build/emscripten/Release/emscripten-01.wasm build/index.wasm",
+    "build": "rm -rf build && mkdir -p build && cp -f ../../build/emscripten/Release/emscripten-01.js build/index.cjs && cp -f ../../build/emscripten/Release/emscripten-01.wasm build/index.wasm",
     "release": "npm publish --access public"
   }
 }
