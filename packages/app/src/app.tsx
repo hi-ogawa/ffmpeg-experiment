@@ -12,6 +12,8 @@ import { tinyassert } from "./utils/tinyassert";
 import toast, { Toaster } from "react-hot-toast";
 import type { WorkerImpl } from "./worker-impl";
 import type { Remote } from "comlink";
+import TEST_WEBM_URL from "../../../misc/test.webm?url";
+import TEST_JPG_URL from "../../../misc/test.jpg?url";
 
 export function App() {
   return (
@@ -91,11 +93,29 @@ function AppImpl() {
           )}
         </div>
         <div className="flex flex-col gap-2">
-          <span>Audio</span>
+          <span className="flex items-baseline gap-2">
+            <span>Audio</span>
+            <a
+              className="text-sm text-blue-500 hover:underline"
+              href={TEST_WEBM_URL}
+              download="example.webm"
+            >
+              (example.webm)
+            </a>
+          </span>
           <input type="file" {...form.register("audioFile")} />
         </div>
         <div className="flex flex-col gap-2">
-          <span>Cover Art</span>
+          <span className="flex items-baseline gap-2">
+            <span>Cover Art</span>
+            <a
+              className="text-sm text-blue-500 hover:underline"
+              href={TEST_JPG_URL}
+              download="example.jpg"
+            >
+              (example.jpg)
+            </a>
+          </span>
           <input type="file" {...form.register("imageFile")} />
         </div>
         <div className="flex flex-col gap-2">

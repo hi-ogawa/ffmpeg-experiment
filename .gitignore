@@ -9,3 +9,4 @@ build
 *.jpg
 *.wav
 !/misc/test.webm
+!/misc/test.jpg
