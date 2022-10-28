@@ -1,5 +1,6 @@
 import { expose } from "comlink";
-import initModule, { ModuleExports } from "@hiogawa/ffmpeg-experiment";
+import init from "@hiogawa/ffmpeg-experiment";
+import type { ModuleExports } from "@hiogawa/ffmpeg-experiment";
 import WASM_URL from "@hiogawa/ffmpeg-experiment/build/index.wasm?url";
 
 // for comlink typing
@@ -9,7 +10,7 @@ let Module: ModuleExports;
 
 class WorkerImpl {
   async initialize() {
-    Module = await initModule({ locateFile: () => WASM_URL });
+    Module = await init({ locateFile: () => WASM_URL });
   }
 
   convert(arg: {

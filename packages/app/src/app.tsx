@@ -175,6 +175,9 @@ function useWorker() {
     queryFn: () => getWorker(),
     staleTime: Infinity,
     cacheTime: Infinity,
+    onError: () => {
+      toast.error("failed to load wasm");
+    },
   });
 }
 

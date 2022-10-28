@@ -8,11 +8,6 @@ export default defineConfig({
   optimizeDeps: {
     include: ["@hiogawa/ffmpeg-experiment"],
   },
-  build: {
-    commonjsOptions: {
-      include: [/@hiogawa\/ffmpeg-experiment/],
-    },
-  },
   worker: {
     // workaround for iife worker bug with `?url` https://github.com/vitejs/vite/issues/9879
     format: "es",

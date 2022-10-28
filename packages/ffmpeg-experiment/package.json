@@ -2,7 +2,7 @@
   "name": "@hiogawa/ffmpeg-experiment",
   "version": "1.0.0-pre.0",
   "type": "commonjs",
-  "main": "./build/index.js",
+  "main": "./build/index.cjs",
   "types": "./src/index.d.js",
   "files": [
     "build/*",
