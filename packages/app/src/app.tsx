@@ -14,6 +14,7 @@ import type { WorkerImpl } from "./worker-impl";
 import type { Remote } from "comlink";
 import TEST_WEBM_URL from "../../../misc/test.webm?url";
 import TEST_JPG_URL from "../../../misc/test.jpg?url";
+import { GitHub } from "react-feather";
 
 export function App() {
   return (
@@ -85,8 +86,15 @@ function AppImpl() {
   return (
     <div className="h-full flex flex-col items-center bg-gray-50">
       <div className="w-2xl max-w-full flex flex-col gap-4 p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <h1 className="text-2xl">FFmpeg Demo</h1>
+          <a
+            className="flex items-center"
+            href="https://github.com/hi-ogawa/ffmpeg-experiment/blob/main/packages/app"
+            target="_blank"
+          >
+            <GitHub className="w-6 h-6" />
+          </a>
           <span className="flex-1"></span>
           {workerQuery.isLoading && (
             <div className="w-6 h-6 spinner" title="loading wasm..." />
