@@ -1,7 +1,9 @@
 {
   "scripts": {
     "dev": "vite --no-clearScreen",
-    "build": "vite build --outDir build"
+    "build": "vite build --outDir build && bash misc/vercel/build.sh",
+    "release": "vercel deploy --prebuilt .",
+    "release:production": "vercel deploy --prebuilt . --prod"
   },
   "devDependencies": {
     "@tsconfig/strictest": "^1.0.2",
