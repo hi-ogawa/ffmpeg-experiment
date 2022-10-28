@@ -57,3 +57,16 @@ jobs:
           wget -O test.jpg https://i.ytimg.com/vi/le0BLAEO93g/maxresdefault.jpg
           node ./src/emscripten-01-demo.js --module ./build/emscripten/Release/emscripten-01.js --in misc/test.webm --out misc/test.opus --in-picture test.jpg --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }'
           node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js misc/test.opus
+
+  build-demo:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 7
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm tsc

@@ -11,8 +11,12 @@
 
 ## todo
 
+- test on browser
+- create npm package
 - mux opus and vp9 into single webm
 - static link ffmpeg external library (e.g. mp4)
+
+## examples
 
 ```sh
 git submodule update --init
@@ -91,4 +95,12 @@ cmake . -B build/emscripten/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN
 cmake --build build/emscripten/Release
 node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js test.webm
 node ./src/emscripten-01-demo.js --module ./build/emscripten/Release/emscripten-01.js --in test.webm --out test.opus --in-picture test.jpg --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }'
+```
+
+## examples (web)
+
+```sh
+pnpm i
+pnpm create-package
+pnpm dev
 ```

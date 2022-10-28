@@ -1,5 +1,6 @@
 node_modules
 build
+.vercel
 *.log
 *.webm
 *.opus
@@ -9,3 +10,4 @@ build
 *.jpg
 *.wav
 !/misc/test.webm
+!/misc/test.jpg
