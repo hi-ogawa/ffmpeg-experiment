@@ -11,3 +11,5 @@ build
 *.wav
 !/misc/test.webm
 !/misc/test.jpg
+/ffmpeg.js
+/ffmpeg.wasm

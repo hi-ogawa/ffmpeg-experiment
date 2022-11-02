@@ -93,6 +93,35 @@ cmake . -B build/emscripten/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN
 cmake --build build/emscripten/Release
 node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js test.webm
 node ./src/emscripten-01-demo.js --module ./build/emscripten/Release/emscripten-01.js --in test.webm --out test.opus --in-picture test.jpg --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }'
+
+#
+# build ffmpeg
+#
+bash misc/ffmpeg-configure.sh "/app/build/emscripten/ffmpeg-tools" --prefix="/app/build/emscripten/ffmpeg-tools/prefix" \
+  --enable-cross-compile \
+  --cc=/emsdk/upstream/emscripten/emcc \
+  --cxx=/emsdk/upstream/emscripten/em++ \
+  --ar=/emsdk/upstream/emscripten/emar \
+  --ld=/emsdk/upstream/emscripten/emcc \
+  --nm=/emsdk/upstream/bin/llvm-nm \
+  --ranlib=/emsdk/upstream/emscripten/emranlib \
+  --extra-ldflags='-s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 --minify 0 -s FILESYSTEM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=["FS"] -s EXIT_RUNTIME=1' \
+  --disable-autodetect --disable-everything --disable-asm --disable-doc --disable-stripping \
+  --enable-protocol=file \
+  --enable-demuxer=webm_dash_manifest,ogg \
+  --enable-muxer=opus \
+  --enable-encoder=opus \
+  --enable-decoder=opus
+
+make -j -C build/emscripten/ffmpeg-tools
+cp build/emscripten/ffmpeg-tools/ffmpeg_g ffmpeg.js
+cp build/emscripten/ffmpeg-tools/ffmpeg_g.wasm ffmpeg.wasm
+```
+
+```js
+// TODO: comlink https://github.com/ffmpegwasm/ffmpeg.wasm/blob/master/examples/browser/transcode.worker.html
+const init = require("./ffmpeg.js");
+await init({ locateFile: () => "./ffmpeg.wasm", arguments: ["--help"] });
 ```
 
 ## examples (web)
