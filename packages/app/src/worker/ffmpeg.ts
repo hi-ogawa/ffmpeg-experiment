@@ -1,6 +1,6 @@
 // NOTE:
-// it seems vite cannot bundle emscripten proxy-to-pthread build by import "?worker" (at least on dev).
-// so, we transpile `src/worker/ffmpeg.ts` separately and uses it via "?url" import.
+// it seems vite cannot bundle emscripten proxy-to-pthread build by "?worker" import (probably due to esm worker).
+// so, we transpile `src/worker/ffmpeg.ts` separately and use it via "?url" import.
 
 import { expose } from "comlink";
 import { run, RunOptions, RunResult } from "./run";

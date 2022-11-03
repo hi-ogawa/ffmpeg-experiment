@@ -1,10 +1,8 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { getWorker, runFFmpegWorker, WORKER_ASSET_URLS } from "./worker-client";
+import { useMutation } from "@tanstack/react-query";
+import { runFFmpegWorker, WORKER_ASSET_URLS } from "./worker-client";
 import { useForm } from "react-hook-form";
 import { tinyassert } from "./utils/tinyassert";
 import toast from "react-hot-toast";
-import type { WorkerImpl } from "./worker-impl";
-import type { Remote } from "comlink";
 import TEST_WEBM_URL from "../../../misc/test.webm?url";
 import TEST_JPG_URL from "../../../misc/test.jpg?url";
 import { GitHub } from "react-feather";
@@ -33,25 +31,16 @@ interface FormType {
 }
 
 function AppImpl() {
-  const workerQuery = useWorker();
-
-  const processFileMutation = useMutation(
-    async (data: FormType) => {
-      return processFileV2(data);
-      // tinyassert(workerQuery.isSuccess);
-      // return processFile(workerQuery.data, data);
+  const processFileMutation = useMutation(processFile, {
+    onSuccess: () => {
+      toast.success("successfully created an opus file");
     },
-    {
-      onSuccess: () => {
-        toast.success("successfully created an opus file");
-      },
-      onError: () => {
-        toast.error("failed to create an opus file", {
-          id: "processFileMutation:onError",
-        });
-      },
-    }
-  );
+    onError: () => {
+      toast.error("failed to create an opus file", {
+        id: "processFileMutation:onError",
+      });
+    },
+  });
 
   const form = useForm<FormType>({
     defaultValues: {
@@ -75,9 +64,6 @@ function AppImpl() {
             <GitHub className="w-6 h-6" />
           </a>
           <span className="flex-1"></span>
-          {workerQuery.isLoading && (
-            <div className="w-6 h-6 spinner" title="loading wasm..." />
-          )}
         </div>
         <div className="flex flex-col gap-2">
           <span className="flex items-baseline gap-2">
@@ -119,11 +105,7 @@ function AppImpl() {
         </div>
         <button
           className="p-1 border bg-gray-300 filter transition duration-200 hover:brightness-95 disabled:(pointer-events-none text-gray-500 bg-gray-200)"
-          disabled={
-            !workerQuery.isSuccess ||
-            !audioFile?.length ||
-            processFileMutation.isLoading
-          }
+          disabled={!audioFile?.length || processFileMutation.isLoading}
           onClick={form.handleSubmit((data) => {
             processFileMutation.mutate(data);
           })}
@@ -156,49 +138,7 @@ function AppImpl() {
   );
 }
 
-function useWorker() {
-  return useQuery({
-    queryKey: [useWorker.name],
-    queryFn: () => getWorker(),
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    onError: () => {
-      toast.error("failed to load wasm");
-    },
-  });
-}
-
-processFile;
 async function processFile(
-  remoteWorker: Remote<WorkerImpl>,
-  data: FormType
-): Promise<{ url: string; name: string }> {
-  const audio = data.audioFile?.[0];
-  tinyassert(audio);
-  const audioData = new Uint8Array(await audio.arrayBuffer());
-
-  const image = data.imageFile?.[0];
-  const imageData = image && new Uint8Array(await image.arrayBuffer());
-
-  const output = await remoteWorker.convert({
-    data: audioData,
-    outFormat: "opus",
-    picture: imageData,
-    metadata: {
-      title: data.title,
-      artist: data.artist,
-      album: data.album,
-    },
-  });
-  // TODO: URL.revokeObjectURL
-  const url = URL.createObjectURL(new Blob([output]));
-  const name =
-    ([data.artist, data.album, data.title].filter(Boolean).join(" - ") ||
-      "download") + ".opus";
-  return { url, name };
-}
-
-async function processFileV2(
   data: FormType
 ): Promise<{ url: string; name: string }> {
   const audio = data.audioFile?.[0];

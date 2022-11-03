@@ -1,7 +1,5 @@
 import { wrap, proxy } from "comlink";
 import _ from "lodash";
-import WorkerConstructor from "./worker-impl?worker";
-import type { WorkerImpl } from "./worker-impl";
 
 import WORKER_URL from "./worker/build/ffmpeg.js?url";
 import type { FFmpegWorker } from "./worker/ffmpeg";
@@ -10,12 +8,6 @@ import type { RunOptions } from "./worker/run";
 import FFMPEG_MODULE_URL from "@hiogawa/ffmpeg-experiment/build/ffmpeg_g.js?url";
 import FFMPEG_WORKER_URL from "@hiogawa/ffmpeg-experiment/build/ffmpeg_g.worker.js?url";
 import FFMPEG_WASM_URL from "@hiogawa/ffmpeg-experiment/build/ffmpeg_g.wasm?url";
-
-export const getWorker = _.memoize(async () => {
-  const worker = wrap<WorkerImpl>(new WorkerConstructor());
-  await worker.initialize();
-  return worker;
-});
 
 type ClientRunOptions = Pick<
   RunOptions,
