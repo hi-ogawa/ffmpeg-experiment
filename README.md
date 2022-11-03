@@ -1,6 +1,6 @@
 # ffmpeg-experiment
 
-## goals
+## summary
 
 - using ffmpeg from c++
 - ffmpeg emscripten build
@@ -11,6 +11,7 @@
 
 ## todo
 
+- [ ] direct port of ffmpeg executable
 - mux opus and vp9 into single webm
 - static link ffmpeg external library (e.g. mp4)
 
@@ -66,6 +67,7 @@ ffmpeg -i test.webm -c copy test.reference.opus  # compare with ffmpeg
 
 # https://github.com/FFmpeg/FFmpeg/blob/81bc4ef14292f77b7dcea01b00e6f2ec1aea4b32/configure#L371-L401
 # https://github.com/emscripten-core/emscripten/blob/00daf403cd09467c6dab841b873710bb878535b2/tools/building.py#L63-L83
+# https://github.com/ffmpegwasm/ffmpeg.wasm-core/blob/1f3461d416/wasm/build-scripts/var.sh
 bash misc/ffmpeg-configure.sh "/app/build/emscripten/ffmpeg" --prefix="/app/build/emscripten/ffmpeg/prefix" \
   --enable-cross-compile \
   --cc=/emsdk/upstream/emscripten/emcc \
@@ -95,8 +97,11 @@ node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js tes
 node ./src/emscripten-01-demo.js --module ./build/emscripten/Release/emscripten-01.js --in test.webm --out test.opus --in-picture test.jpg --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }'
 
 #
-# build ffmpeg
+# build ffmpeg executable in emscripten
 #
+# https://emscripten.org/docs/porting/pthreads.html
+#   PROXY_TO_PTHREAD=1 (non blocking thread creation (otherwise program hangs))
+#   PTHREAD_POOL_SIZE_STRICT=0 (allow on-demand thread creation)
 bash misc/ffmpeg-configure.sh "/app/build/emscripten/ffmpeg-tools" --prefix="/app/build/emscripten/ffmpeg-tools/prefix" \
   --enable-cross-compile \
   --cc=/emsdk/upstream/emscripten/emcc \
@@ -105,7 +110,8 @@ bash misc/ffmpeg-configure.sh "/app/build/emscripten/ffmpeg-tools" --prefix="/ap
   --ld=/emsdk/upstream/emscripten/emcc \
   --nm=/emsdk/upstream/bin/llvm-nm \
   --ranlib=/emsdk/upstream/emscripten/emranlib \
-  --extra-ldflags='-s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 --minify 0 -s FILESYSTEM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=["FS"] -s EXIT_RUNTIME=1' \
+  --extra-ldflags='-s USE_PTHREADS=1 -s PROXY_TO_PTHREAD=1 -s PTHREAD_POOL_SIZE_STRICT=0 -s EXPORT_NAME=ffmpeg -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 --minify 0 -s FILESYSTEM=1 -s EXPORTED_RUNTIME_METHODS=["callMain","FS"]' \
+  --target-os=none --arch=x86_32 \
   --disable-autodetect --disable-everything --disable-asm --disable-doc --disable-stripping \
   --enable-protocol=file \
   --enable-demuxer=webm_dash_manifest,ogg \
@@ -113,15 +119,9 @@ bash misc/ffmpeg-configure.sh "/app/build/emscripten/ffmpeg-tools" --prefix="/ap
   --enable-encoder=opus \
   --enable-decoder=opus
 
-make -j -C build/emscripten/ffmpeg-tools
-cp build/emscripten/ffmpeg-tools/ffmpeg_g ffmpeg.js
-cp build/emscripten/ffmpeg-tools/ffmpeg_g.wasm ffmpeg.wasm
-```
-
-```js
-// TODO: comlink https://github.com/ffmpegwasm/ffmpeg.wasm/blob/master/examples/browser/transcode.worker.html
-const init = require("./ffmpeg.js");
-await init({ locateFile: () => "./ffmpeg.wasm", arguments: ["--help"] });
+make -j -C build/emscripten/ffmpeg-tools EXESUF=.js
+pnpm ts ./src/emscripten-02-demo.ts --module build/emscripten/ffmpeg-tools/ffmpeg_g.js
+pnpm ts ./src/emscripten-03-demo.ts --module build/emscripten/ffmpeg-tools/ffmpeg_g.js --in test.webm --out test.opus --title 'Dean Town' --artist 'Vulfpeck'
 ```
 
 ## examples (web)
