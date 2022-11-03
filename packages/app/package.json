@@ -1,8 +1,10 @@
 {
   "scripts": {
-    "dev": "vite --no-clearScreen",
+    "dev": "run-p vite:dev tsc:dev",
+    "vite:dev": "vite --no-clearScreen",
     "build": "vite build --outDir build && bash misc/vercel/build.sh",
     "build:worker": "esbuild ./src/worker/ffmpeg.ts --bundle --outdir=./src/worker/build",
+    "tsc:dev": "tsc -b -w --preserveWatchOutput",
     "release": "vercel deploy --prebuilt .",
     "release:production": "vercel deploy --prebuilt . --prod"
   },
