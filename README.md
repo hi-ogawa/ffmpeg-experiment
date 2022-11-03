@@ -8,10 +8,10 @@
   - metadata manipulation
   - demux, mux, decode, encode
   - in-memory buffer for IO without file system
+- direct port of ffmpeg executable
 
 ## todo
 
-- [ ] direct port of ffmpeg executable
 - mux opus and vp9 into single webm
 - static link ffmpeg external library (e.g. mp4)
 
