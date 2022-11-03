@@ -1,48 +1,26 @@
-import React from "react";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { getWorker } from "./worker-client";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getWorker, runFFmpegWorker, WORKER_ASSET_URLS } from "./worker-client";
 import { useForm } from "react-hook-form";
 import { tinyassert } from "./utils/tinyassert";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import type { WorkerImpl } from "./worker-impl";
 import type { Remote } from "comlink";
 import TEST_WEBM_URL from "../../../misc/test.webm?url";
 import TEST_JPG_URL from "../../../misc/test.jpg?url";
 import { GitHub } from "react-feather";
+import { Helmet } from "react-helmet-async";
+import { AppProvider } from "./app-provider";
 
 export function App() {
   return (
-    <Providers>
+    <AppProvider>
+      <Helmet>
+        {WORKER_ASSET_URLS.map((href) => (
+          <link key={href} rel="prefetch" href={href} />
+        ))}
+      </Helmet>
       <AppImpl />
-      <Toaster />
-    </Providers>
-  );
-}
-
-function Providers(props: React.PropsWithChildren) {
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            refetchOnWindowFocus: false,
-            refetchOnReconnect: false,
-            retry: 0,
-          },
-        },
-      })
-  );
-  return (
-    <QueryClientProvider client={queryClient}>
-      {props.children}
-      {import.meta.env.DEV && <ReactQueryDevtools />}
-    </QueryClientProvider>
+    </AppProvider>
   );
 }
 
@@ -59,8 +37,9 @@ function AppImpl() {
 
   const processFileMutation = useMutation(
     async (data: FormType) => {
-      tinyassert(workerQuery.isSuccess);
-      return processFile(workerQuery.data, data);
+      return processFileV2(data);
+      // tinyassert(workerQuery.isSuccess);
+      // return processFile(workerQuery.data, data);
     },
     {
       onSuccess: () => {
@@ -189,6 +168,7 @@ function useWorker() {
   });
 }
 
+processFile;
 async function processFile(
   remoteWorker: Remote<WorkerImpl>,
   data: FormType
@@ -212,6 +192,56 @@ async function processFile(
   });
   // TODO: URL.revokeObjectURL
   const url = URL.createObjectURL(new Blob([output]));
+  const name =
+    ([data.artist, data.album, data.title].filter(Boolean).join(" - ") ||
+      "download") + ".opus";
+  return { url, name };
+}
+
+async function processFileV2(
+  data: FormType
+): Promise<{ url: string; name: string }> {
+  const audio = data.audioFile?.[0];
+  tinyassert(audio);
+  const audioData = new Uint8Array(await audio.arrayBuffer());
+
+  // TODO: thumbnail via separate utility openenc-picture
+  // const image = data.imageFile?.[0];
+  // const imageData = image && new Uint8Array(await image.arrayBuffer());
+
+  const IN_FILE = "/in.webm";
+  const OUT_FILE = "/out.opus";
+  const result = await runFFmpegWorker({
+    // prettier-ignore
+    arguments: [
+      "-hide_banner",
+      "-i", IN_FILE,
+      "-c", "copy",
+      data.artist && ["-metadata", `artist=${data.artist}`],
+      data.title  && ["-metadata", `title=${data.title}`],
+      OUT_FILE
+    ].flat().filter(Boolean),
+    inFiles: [
+      {
+        path: IN_FILE,
+        data: audioData,
+      },
+    ],
+    outFiles: [
+      {
+        path: OUT_FILE,
+      },
+    ],
+    onStdout: (data) => console.log({ stdout: data }),
+    onStderr: (data) => console.log({ stderr: data }),
+  });
+  tinyassert(result.exitCode === 0);
+
+  const outFile = result.outFiles.find((f) => f.path === OUT_FILE);
+  tinyassert(outFile);
+
+  // TODO: URL.revokeObjectURL
+  const url = URL.createObjectURL(new Blob([outFile.data]));
   const name =
     ([data.artist, data.album, data.title].filter(Boolean).join(" - ") ||
       "download") + ".opus";

@@ -1,7 +1,7 @@
 import { expose } from "comlink";
 import init from "@hiogawa/ffmpeg-experiment";
 import type { ModuleExports } from "@hiogawa/ffmpeg-experiment";
-import WASM_URL from "@hiogawa/ffmpeg-experiment/build/index.wasm?url";
+import WASM_URL from "@hiogawa/ffmpeg-experiment/build/emscripten-01.wasm?url";
 
 // for comlink typing
 export type { WorkerImpl };

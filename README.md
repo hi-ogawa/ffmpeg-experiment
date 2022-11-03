@@ -126,8 +126,4 @@ pnpm ts ./src/emscripten-03-demo.ts --module build/emscripten/ffmpeg-tools/ffmpe
 
 ## examples (web)
 
-```sh
-pnpm i
-pnpm create-package
-pnpm dev
-```
+see `packages/app`

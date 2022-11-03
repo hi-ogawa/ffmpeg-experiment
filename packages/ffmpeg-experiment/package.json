@@ -1,8 +1,8 @@
 {
   "name": "@hiogawa/ffmpeg-experiment",
-  "version": "1.0.0-pre.1",
+  "version": "1.0.0-pre.2",
   "type": "commonjs",
-  "main": "./build/index.cjs",
+  "main": "./build/emscripten-01.js",
   "types": "./src/index.d.js",
   "files": [
     "build/*",
@@ -13,7 +13,7 @@
     "url": "https://github.com/hi-ogawa/ffmpeg-experiment"
   },
   "scripts": {
-    "build": "rm -rf build && mkdir -p build && cp -f ../../build/emscripten/Release/emscripten-01.js build/index.cjs && cp -f ../../build/emscripten/Release/emscripten-01.wasm build/index.wasm",
+    "build": "bash build.sh",
     "release": "npm publish --access public"
   }
 }
