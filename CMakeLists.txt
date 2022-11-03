@@ -32,6 +32,8 @@ target_link_libraries(example-03 ffmpeg)
 add_executable(example-04 src/example-04.cpp)
 target_link_libraries(example-04 ffmpeg)
 
+add_executable(opusenc-picture-test src/opusenc-picture-test.cpp)
+
 # emscripten
 get_filename_component(COMPILER_BASENAME "${CMAKE_C_COMPILER}" NAME)
 if (COMPILER_BASENAME STREQUAL emcc)

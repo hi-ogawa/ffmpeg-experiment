@@ -152,3 +152,21 @@ struct defer_helper {
 #define _DEFER_VAR2(x) _defer_var_##x
 #define _DEFER_VAR1(x) _DEFER_VAR2(x)
 #define DEFER auto _DEFER_VAR1(__LINE__) = defer_helper{} *= [&]()
+
+//
+// hex print
+//
+
+namespace utils {
+
+constexpr char HEX_TABLE[] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                              '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+std::string to_hex(uint8_t x) {
+  std::string res;
+  res += HEX_TABLE[(x >> 4) & 0xf];
+  res += HEX_TABLE[x & 0xf];
+  return res;
+}
+
+}  // namespace utils

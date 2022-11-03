@@ -8,6 +8,13 @@ import TEST_JPG_URL from "../../../misc/test.jpg?url";
 import { GitHub } from "react-feather";
 import { Helmet } from "react-helmet-async";
 import { AppProvider } from "./app-provider";
+import {
+  decodeJpeg,
+  encodeOpusPicture,
+  METADATA_BLOCK_PICTURE,
+} from "./utils/opus-picture";
+import { toBase64 } from "@hiogawa/base64";
+import { booleanGuard } from "./utils/boolean-gurad";
 
 export function App() {
   return (
@@ -145,9 +152,9 @@ async function processFile(
   tinyassert(audio);
   const audioData = new Uint8Array(await audio.arrayBuffer());
 
-  // TODO: thumbnail via separate utility openenc-picture
-  // const image = data.imageFile?.[0];
-  // const imageData = image && new Uint8Array(await image.arrayBuffer());
+  const image = data.imageFile?.[0];
+  const encodedImage =
+    image && processImage(new Uint8Array(await image.arrayBuffer()));
 
   const IN_FILE = "/in.webm";
   const OUT_FILE = "/out.opus";
@@ -159,8 +166,9 @@ async function processFile(
       "-c", "copy",
       data.artist && ["-metadata", `artist=${data.artist}`],
       data.title  && ["-metadata", `title=${data.title}`],
+      encodedImage && ["-metadata", `${METADATA_BLOCK_PICTURE}=${encodedImage}`],
       OUT_FILE
-    ].flat().filter(Boolean),
+    ].filter(booleanGuard).flat(),
     inFiles: [
       {
         path: IN_FILE,
@@ -186,4 +194,11 @@ async function processFile(
     ([data.artist, data.album, data.title].filter(Boolean).join(" - ") ||
       "download") + ".opus";
   return { url, name };
+}
+
+function processImage(data: Uint8Array): string {
+  const info = decodeJpeg(data);
+  const encodedBin = encodeOpusPicture(data, info, 3, ""); // 3 means "cover art"
+  const encodedBase64Bin = toBase64(encodedBin);
+  return new TextDecoder().decode(encodedBase64Bin);
 }
