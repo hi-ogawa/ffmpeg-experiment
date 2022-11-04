@@ -2,6 +2,8 @@
 // embed image data (e.g. cover art) to ogg/opus metadata
 //
 // cf.
+// - https://wiki.xiph.org/VorbisComment#Cover_art
+// - https://xiph.org/flac/format.html#metadata_block_picture
 // - https://gitlab.xiph.org/xiph/libopusenc/-/blob/f51c3aa431c2f0f8fccd8926628b5f330292489f/src/picture.c
 // - https://github.com/FFmpeg/FFmpeg/blob/81bc4ef14292f77b7dcea01b00e6f2ec1aea4b32/libavformat/flacenc.c#L81
 

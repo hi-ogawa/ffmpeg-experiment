@@ -97,7 +97,7 @@ node ./src/emscripten-00-demo.js ./build/emscripten/Release/emscripten-00.js tes
 node ./src/emscripten-01-demo.js --module ./build/emscripten/Release/emscripten-01.js --in test.webm --out test.opus --in-picture test.jpg --in-metadata '{ "title": "Dean Town", "artist": "Vulfpeck" }'
 
 #
-# build ffmpeg executable in emscripten
+# build ffmpeg cli
 #
 # https://emscripten.org/docs/porting/pthreads.html
 #   PROXY_TO_PTHREAD=1 (non blocking thread creation (otherwise program hangs))
