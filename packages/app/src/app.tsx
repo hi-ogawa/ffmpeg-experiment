@@ -1,48 +1,31 @@
-import React from "react";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-} from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { getWorker } from "./worker-client";
+import { useMutation } from "@tanstack/react-query";
+import { runFFmpegWorker, WORKER_ASSET_URLS } from "./worker-client";
 import { useForm } from "react-hook-form";
 import { tinyassert } from "./utils/tinyassert";
-import toast, { Toaster } from "react-hot-toast";
-import type { WorkerImpl } from "./worker-impl";
-import type { Remote } from "comlink";
+import toast from "react-hot-toast";
 import TEST_WEBM_URL from "../../../misc/test.webm?url";
 import TEST_JPG_URL from "../../../misc/test.jpg?url";
 import { GitHub } from "react-feather";
+import { Helmet } from "react-helmet-async";
+import { AppProvider } from "./app-provider";
+import {
+  decodeJpeg,
+  encodeOpusPicture,
+  METADATA_BLOCK_PICTURE,
+} from "./utils/opus-picture";
+import { toBase64 } from "@hiogawa/base64";
+import { booleanGuard } from "./utils/boolean-gurad";
 
 export function App() {
   return (
-    <Providers>
+    <AppProvider>
+      <Helmet>
+        {WORKER_ASSET_URLS.map((href) => (
+          <link key={href} rel="prefetch" href={href} />
+        ))}
+      </Helmet>
       <AppImpl />
-      <Toaster />
-    </Providers>
-  );
-}
-
-function Providers(props: React.PropsWithChildren) {
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            refetchOnWindowFocus: false,
-            refetchOnReconnect: false,
-            retry: 0,
-          },
-        },
-      })
-  );
-  return (
-    <QueryClientProvider client={queryClient}>
-      {props.children}
-      {import.meta.env.DEV && <ReactQueryDevtools />}
-    </QueryClientProvider>
+    </AppProvider>
   );
 }
 
@@ -55,24 +38,16 @@ interface FormType {
 }
 
 function AppImpl() {
-  const workerQuery = useWorker();
-
-  const processFileMutation = useMutation(
-    async (data: FormType) => {
-      tinyassert(workerQuery.isSuccess);
-      return processFile(workerQuery.data, data);
+  const processFileMutation = useMutation(processFile, {
+    onSuccess: () => {
+      toast.success("successfully created an opus file");
     },
-    {
-      onSuccess: () => {
-        toast.success("successfully created an opus file");
-      },
-      onError: () => {
-        toast.error("failed to create an opus file", {
-          id: "processFileMutation:onError",
-        });
-      },
-    }
-  );
+    onError: () => {
+      toast.error("failed to create an opus file", {
+        id: "processFileMutation:onError",
+      });
+    },
+  });
 
   const form = useForm<FormType>({
     defaultValues: {
@@ -96,9 +71,6 @@ function AppImpl() {
             <GitHub className="w-6 h-6" />
           </a>
           <span className="flex-1"></span>
-          {workerQuery.isLoading && (
-            <div className="w-6 h-6 spinner" title="loading wasm..." />
-          )}
         </div>
         <div className="flex flex-col gap-2">
           <span className="flex items-baseline gap-2">
@@ -140,11 +112,7 @@ function AppImpl() {
         </div>
         <button
           className="p-1 border bg-gray-300 filter transition duration-200 hover:brightness-95 disabled:(pointer-events-none text-gray-500 bg-gray-200)"
-          disabled={
-            !workerQuery.isSuccess ||
-            !audioFile?.length ||
-            processFileMutation.isLoading
-          }
+          disabled={!audioFile?.length || processFileMutation.isLoading}
           onClick={form.handleSubmit((data) => {
             processFileMutation.mutate(data);
           })}
@@ -177,20 +145,7 @@ function AppImpl() {
   );
 }
 
-function useWorker() {
-  return useQuery({
-    queryKey: [useWorker.name],
-    queryFn: () => getWorker(),
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    onError: () => {
-      toast.error("failed to load wasm");
-    },
-  });
-}
-
 async function processFile(
-  remoteWorker: Remote<WorkerImpl>,
   data: FormType
 ): Promise<{ url: string; name: string }> {
   const audio = data.audioFile?.[0];
@@ -198,22 +153,52 @@ async function processFile(
   const audioData = new Uint8Array(await audio.arrayBuffer());
 
   const image = data.imageFile?.[0];
-  const imageData = image && new Uint8Array(await image.arrayBuffer());
+  const encodedImage =
+    image && processImage(new Uint8Array(await image.arrayBuffer()));
 
-  const output = await remoteWorker.convert({
-    data: audioData,
-    outFormat: "opus",
-    picture: imageData,
-    metadata: {
-      title: data.title,
-      artist: data.artist,
-      album: data.album,
-    },
+  const IN_FILE = "/in.webm";
+  const OUT_FILE = "/out.opus";
+  const result = await runFFmpegWorker({
+    // prettier-ignore
+    arguments: [
+      "-hide_banner",
+      "-i", IN_FILE,
+      "-c", "copy",
+      data.artist && ["-metadata", `artist=${data.artist}`],
+      data.title  && ["-metadata", `title=${data.title}`],
+      encodedImage && ["-metadata", `${METADATA_BLOCK_PICTURE}=${encodedImage}`],
+      OUT_FILE
+    ].filter(booleanGuard).flat(),
+    inFiles: [
+      {
+        path: IN_FILE,
+        data: audioData,
+      },
+    ],
+    outFiles: [
+      {
+        path: OUT_FILE,
+      },
+    ],
+    onStdout: (data) => console.log({ stdout: data }),
+    onStderr: (data) => console.log({ stderr: data }),
   });
+  tinyassert(result.exitCode === 0);
+
+  const outFile = result.outFiles.find((f) => f.path === OUT_FILE);
+  tinyassert(outFile);
+
   // TODO: URL.revokeObjectURL
-  const url = URL.createObjectURL(new Blob([output]));
+  const url = URL.createObjectURL(new Blob([outFile.data]));
   const name =
     ([data.artist, data.album, data.title].filter(Boolean).join(" - ") ||
       "download") + ".opus";
   return { url, name };
+}
+
+function processImage(data: Uint8Array): string {
+  const info = decodeJpeg(data);
+  const encodedBin = encodeOpusPicture(data, info, 3, ""); // 3 means "cover art"
+  const encodedBase64Bin = toBase64(encodedBin);
+  return new TextDecoder().decode(encodedBase64Bin);
 }

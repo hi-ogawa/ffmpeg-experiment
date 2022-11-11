@@ -4,12 +4,11 @@
   "compilerOptions": {
     "exactOptionalPropertyTypes": false, // too strict
     "noEmit": true,
-    "checkJs": false,
     "module": "esnext",
     "moduleResolution": "node",
     "target": "es2021",
-    "lib": ["es2021", "dom", "WebWorker.ImportScripts"],
-    "types": ["vite/client"],
+    "lib": ["es2021"],
+    "types": ["@types/node"],
     "jsx": "react-jsx"
   }
 }
