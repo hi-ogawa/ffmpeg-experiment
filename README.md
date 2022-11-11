@@ -61,6 +61,9 @@ ffmpeg -i test.webm -c copy test.reference.opus  # compare with ffmpeg
 # transcode (webm -> opus) (TODO: not working. could be due to experimental ffmpeg's experimental opus encoder)
 ./build/native/Debug/example-04 --in test.webm --out test.opus
 
+# extract audio and cut data by timestamp range
+./build/native/Debug/example-05 --in test.webm --out test.opus --start-time 10 --end-time 20
+
 #
 # emscripten build (run inside `docker-compose run --rm emscripten`)
 #

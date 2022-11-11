@@ -32,6 +32,9 @@ target_link_libraries(example-03 ffmpeg)
 add_executable(example-04 src/example-04.cpp)
 target_link_libraries(example-04 ffmpeg)
 
+add_executable(example-05 src/example-05.cpp)
+target_link_libraries(example-05 ffmpeg)
+
 add_executable(opusenc-picture-test src/opusenc-picture-test.cpp)
 
 # emscripten
